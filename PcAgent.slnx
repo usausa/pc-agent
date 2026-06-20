@@ -3,7 +3,7 @@
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
-    <File Path="Agent.sln.DotSettings" />
+    <File Path="PcAgent.sln.DotSettings" />
     <File Path="AGENTS.md" />
     <File Path="Analyzers.ruleset" />
     <File Path="CLAUDE.md" />

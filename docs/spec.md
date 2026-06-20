@@ -128,7 +128,7 @@
 ### 4.2 プロジェクト構成（案）
 
 ```
-Agent.slnx
+PcAgent.slnx
 ├─ PcAgent.Diagnostics   (classlib, net10.0-windows…)  … 情報取得 + ルール判定（決定的・LLM非依存）
 │     ├─ Collectors/     … 収集の拡張ポイント（ICollector 実装を DI 登録）
 │     │     ├─ HardwareCollector   (LibreHardwareMonitor)

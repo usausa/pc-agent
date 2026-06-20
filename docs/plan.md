@@ -68,7 +68,7 @@ P0 基盤
 
 **目的**: 3 プロジェクト構成と共通ビルド設定を用意し、空ビルドが通る状態にする。
 
-**主な成果物**: `Agent.slnx` 更新、`PcAgent.Diagnostics` / `PcAgent.Agent` / `PcAgent.Tui` の空プロジェクト、TFM・参照の骨格。
+**主な成果物**: `PcAgent.slnx` 更新、`PcAgent.Diagnostics` / `PcAgent.Agent` / `PcAgent.Tui` の空プロジェクト、TFM・参照の骨格。
 
 **参照**: 既存 `Directory.Build.props` / BleScan の csproj・GlobalSuppressions・publish プロファイル。
 
@@ -76,7 +76,7 @@ P0 基盤
 - [x] `PcAgent.Diagnostics`（classlib, `net10.0-windows10.0.26100.0`）作成
 - [x] `PcAgent.Agent`（classlib, 同 TFM）作成
 - [x] `PcAgent.Tui`（exe, 同 TFM）作成、参照: Tui→Agent→Diagnostics
-- [x] `Agent.slnx` に 3 プロジェクト追加
+- [x] `PcAgent.slnx` に 3 プロジェクト追加
 - [x] 既存 `Directory.Build.props` 継承を確認 + 各 csproj から `Analyzers.ruleset` を参照
 - [x] CS ファイルは UTF-8（BOMなし）+ CRLF を確認
 - [~] `GlobalSuppressions.cs`：P0 はコードが無く不要。必要時に AGENTS.md 準拠で相談のうえ追加
@@ -118,17 +118,20 @@ return await builder.Build().RunAsync();
 **参照**: BleScan `Program.cs`（`ConfigureRootCommand`+`UseHandler`）、Develop の `ExecutionTimeFilter`/`ExceptionHandlingFilter`。
 
 **チェックリスト**
-- [ ] `Usa.Smart.CommandLine.Hosting` + `System.CommandLine` パッケージ参照
-- [ ] `Program.cs`：`CreateBuilder().UseDefaults()`（appsettings/env/user-secrets）
-- [ ] `RootCommandHandler`：引数なしで REPL プレースホルダ、`--ask <q>` で単発プレースホルダ
-- [ ] `InfoCommand`（`info <category> [--json]`）スケルトン
-- [ ] `DiagnoseCommand`（`diagnose [--json]`）スケルトン
-- [ ] `ExecutionTimeFilter`（実行時間ログ）/ `ExceptionHandlingFilter`（例外整形）
-- [ ] 設定 POCO 群（§12 のキーに対応）を `IOptions` でバインド
-- [ ] `appsettings.json` 雛形（Llm/Collection/Diagnostics/Actions/Telemetry/Ui）
-- [ ] `--help` 出力確認
+- [x] `Usa.Smart.CommandLine.Hosting` 2.8.0 参照（`System.CommandLine` は推移参照のため明示不要）
+- [x] `Program.cs`：`CreateBuilder().UseDefaults()`（appsettings/env/user-secrets）
+- [x] `RootCommandHandler`：引数なしで REPL プレースホルダ、`--ask <q>` で単発プレースホルダ
+- [x] `InfoCommand`（`info --category <cat> [--json]`）スケルトン ※ positional 未対応のため `--category` オプション
+- [x] `DiagnoseCommand`（`diagnose [--category] [--json]`）スケルトン
+- [x] `ExecutionTimeFilter`（実行時間ログ）+ `CancellationFilter`（取り消し処理）※ 全体例外整形は P9 で拡張
+- [x] 設定 POCO 群（§12 の scalar 群）を `Configure<T>` でバインド ※ 配列系(BinObj/Enabled 等)は消費フェーズで追加
+- [x] `appsettings.json` 雛形（Llm/Collection/Diagnostics/Actions/Telemetry/Ui）
+- [x] `--help` 出力確認
+- [x] `GlobalSuppressions.cs`（CA1515 / CA1848 / CA2007）で framework・console 都合の警告を抑制（BleScan / Example.Web と同方式）
+- [x] CS ファイルは UTF-8（BOMなし）+ CRLF を確認
+- [x] ソリューションを `PcAgent.slnx` / `PcAgent.sln.DotSettings` にリネーム
 
-**完了基準**: `pcagent --help` / `pcagent info cpu`（空応答）/ `pcagent --ask "test"` が起動・終了コード正常。警告ゼロ。
+**完了基準**: `pcagent --help` / `info -c cpu` / `diagnose` / `--ask "test"` / 引数なし がすべて起動・ExitCode 0。✅ **達成**（0 警告 / 0 エラー）。
 
 ---
 
