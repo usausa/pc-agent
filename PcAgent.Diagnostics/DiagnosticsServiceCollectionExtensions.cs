@@ -3,6 +3,8 @@ namespace PcAgent.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using PcAgent.Diagnostics.Collectors;
+using PcAgent.Diagnostics.Hardware;
 using PcAgent.Diagnostics.Options;
 
 // 情報取得・診断機能の DI 登録拡張。
@@ -15,7 +17,19 @@ public static class DiagnosticsServiceCollectionExtensions
         services.Configure<DiagnosticsOptions>(configuration.GetSection(DiagnosticsOptions.SectionName));
         services.Configure<ActionsOptions>(configuration.GetSection(ActionsOptions.SectionName));
 
-        // 収集(ICollector)とルールエンジンはフェーズ2・6で登録する。
+        services.AddSingleton<HardwareMonitorSource>();
+
+        services.AddSingleton<ICollector, CpuCollector>();
+        services.AddSingleton<ICollector, GpuCollector>();
+        services.AddSingleton<ICollector, MemoryCollector>();
+        services.AddSingleton<ICollector, MotherboardCollector>();
+        services.AddSingleton<ICollector, DiskCollector>();
+        services.AddSingleton<ICollector, NetworkCollector>();
+        services.AddSingleton<ICollector, BatteryCollector>();
+        services.AddSingleton<ICollector, SmartCollector>();
+        services.AddSingleton<ICollector, SystemCollector>();
+
+        // ルールエンジンはフェーズ6で登録する。
         return services;
     }
 }

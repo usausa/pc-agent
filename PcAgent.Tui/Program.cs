@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 using PcAgent.Agent;
 using PcAgent.Diagnostics;
@@ -9,6 +11,9 @@ using PcAgent.Tui.Options;
 using Smart.CommandLine.Hosting;
 
 var builder = CommandHost.CreateBuilder(args).UseDefaults();
+
+// ログは標準エラーへ。標準出力はコマンドの出力(JSON 等)専用にする。
+builder.Services.Configure<ConsoleLoggerOptions>(static options => options.LogToStandardErrorThreshold = LogLevel.Trace);
 
 builder.Services.AddDiagnostics(builder.Configuration);
 builder.Services.AddPcAgent(builder.Configuration);

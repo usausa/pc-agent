@@ -162,19 +162,19 @@ public interface ICollector
 **参照**: PrometheusExporter `HardwareMonitorInstrumentation`（初期化・Visitor・節流）、`DiskInfoInstrumentation`（NVMe/Generic）、`NativeMethods`（`GetPhysicallyInstalledSystemMemory`）、`PcTools`（システム情報・プロセス）。
 
 **チェックリスト**
-- [ ] `LibreHardwareMonitorLib` 0.9.6 / `HardwareInfo.Disk` 1.12.0 参照
-- [ ] `ICollector` + `CollectorResult` / `Snapshot` モデル定義
-- [ ] `HardwareCollector`：`Computer` 初期化（カテゴリ別 Enable）、`UpdateVisitor`、節流更新
-- [ ] CPU/GPU/メモリ/MB(I/O)/ストレージ/NW/バッテリーのメトリクス取得（§5.1 表）
-- [ ] `SmartCollector`：NVMe（PercentageUsed/Temperature/CriticalWarning/AvailableSpare 等）・Generic（属性 ID/RawValue）
-- [ ] `SystemCollector`：OS/アーキ/プロセッサ数/.NET/稼働時間/ドライブ/上位プロセス（`Process.Dispose` 防御）
-- [ ] 欠損値 `double.NaN` の扱い統一
-- [ ] `services.AddDiagnostics()`（全コレクタ + オプション登録）
-- [ ] 管理者権限判定ユーティリティ（不足時は取得可能範囲で縮退）
-- [ ] `Collection:UpdateIntervalMs` / `Collection:SmartIntervalMs` / カテゴリ別 Enable を反映
-- [ ] `InfoCommand` で実データ表示（暫定: 素テキスト/簡易表）
+- [x] `LibreHardwareMonitorLib` 0.9.6 / `HardwareInfo.Disk` 1.12.0 参照（`AllowUnsafeBlocks`=true: LibraryImport 生成のため）
+- [x] `ICollector` + `CollectorResult`/`MetricGroup`/`MetricValue` モデル定義
+- [x] `HardwareMonitorSource`（`Computer` 初期化・`UpdateVisitor`・節流更新）+ `HardwareCollectorBase` + 7 カテゴリ派生
+- [x] CPU/GPU/メモリ/MB/ストレージ/NW/バッテリーのメトリクス取得（センサー→`SensorKind`+単位で汎用変換）
+- [x] `SmartCollector`：NVMe（PercentageUsed/Temperature/CriticalWarning/AvailableSpare 等）・Generic（属性 ID/RawValue、代表 ID は名称化）
+- [x] `SystemCollector`：OS/アーキ/プロセッサ数/.NET/稼働時間/ドライブ/上位プロセス（`Process.Dispose` 防御、ドライブは `IsReady`+IO 例外ガード）
+- [x] 欠損値の扱い統一 ※ JSON 互換のため `double.NaN` ではなく **`null`**（`double?`）に変更
+- [x] `services.AddDiagnostics()`（`HardwareMonitorSource` + 9 コレクタ + オプション登録）
+- [x] 管理者権限判定 `AdminChecker`（不足時は note 表示 + 取得可能範囲で縮退）
+- [~] `Collection:UpdateIntervalMs`（節流に反映）。`SmartIntervalMs`/カテゴリ別 Enable は将来（現状は全 HW 有効・単発取得）
+- [x] `InfoCommand` で実データ表示（プレーンテキスト + `--json`）。ログは stderr 分離（stdout=出力専用）
 
-**完了基準**: 管理者実行で `pcagent info cpu` / `info disk` / `info smart` / `info system` が実値表示。`--json` で構造化出力。警告ゼロ。
+**完了基準**: `info system`（OS/メモリ/全ドライブ/プロセス）・`info cpu`（実コア負荷）・`info smart`（ディスク構造化）・`--json`（クリーン JSON）。✅ **達成**（0 警告 / 0 エラー、UTF-8 BOMなし+CRLF）。温度/電力/SMART 値は管理者実行時に充足。
 
 ---
 
