@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using PcAgent.Agent.Options;
+using PcAgent.Agent.Tools;
 
 // エージェント機能の DI 登録拡張。
 public static class AgentServiceCollectionExtensions
@@ -15,7 +16,9 @@ public static class AgentServiceCollectionExtensions
         services.Configure<TelemetryOptions>(configuration.GetSection(TelemetryOptions.SectionName));
         services.Configure<RagOptions>(configuration.GetSection(RagOptions.SectionName));
 
-        // IChatClient ファクトリ・エージェント・ツールはフェーズ3で登録する。
+        services.AddSingleton<PcInfoTools>();
+        services.AddSingleton<IAgentConversation, PcAgentConversation>();
+
         return services;
     }
 }

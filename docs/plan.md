@@ -199,17 +199,17 @@ public interface IChatClientFactory { IChatClient Create(LlmOptions options); }
 **参照**: AgentSampleCore（接続・`AsAIAgent`）、Feature01（ツール）、Feature09（`RunStreamingAsync`/`AgentResponseUpdate`）、TuiAgentSampleCore（`AgentEvent`/`IAgentConversation`）。
 
 **チェックリスト**
-- [ ] `Microsoft.Agents.AI` / `.OpenAI` / `Azure.AI.OpenAI` 参照
-- [ ] `LlmOptions`（Provider/Endpoint/ApiKey/Model、`Foundry__*` 互換）
-- [ ] `IChatClientFactory` + `FoundryChatClientFactory`
-- [ ] 接続未設定時の案内メッセージ（AgentSampleCore 流）
-- [ ] コレクタをラップした関数ツール（`[Description]` 付与、引数つきツール例含む）
-- [ ] エージェント生成（`AsAIAgent` / 後で `ChatClientAgentOptions` へ拡張可能に）
-- [ ] `AgentEvent` モデル + `IAgentConversation` 実装（実 LLM 版）
-- [ ] `StreamingBridge`：`RunStreamingAsync` → AgentEvent（テキスト/ツール検出）
-- [ ] `RootCommandHandler --ask` で 1 問ストリーミング回答（最小・素 Console）
+- [x] `Microsoft.Agents.AI` 1.10.0 / `.OpenAI` 1.10.0 / `Azure.AI.OpenAI` 2.1.0 参照
+- [x] `LlmOptions`（Provider/Endpoint/ApiKey/Model）。設定は appsettings/user-secrets/環境変数(`Llm__*`) ※ `Foundry__*` 別名は未対応（`Llm` セクションに統一）
+- [x] `ChatClientFactory.TryCreate`（Foundry=AzureOpenAIClient / Ollama・FoundryLocal=OpenAIClient+Endpoint。未設定なら null）
+- [x] 接続未設定時の案内メッセージ（`IsConfigured` 判定 → 設定方法を表示・exit 1）
+- [x] コレクタをラップした関数ツール `PcInfoTools`（`GetPcInfo(category)` 引数つき・`ListCategories()`、`[Description]` 付与）
+- [x] エージェント生成（`chatClient.AsAIAgent(instructions, name, tools)`）
+- [x] `AgentEvent` モデル + `IAgentConversation` / `PcAgentConversation`（実 LLM 版）
+- [x] ストリーミング変換：`RunStreamingAsync` → AgentEvent（`FunctionCallContent`/`FunctionResultContent` 検出、テキスト断片）。classlib は `ConfigureAwait(false)`
+- [x] `RootCommandHandler --ask` で 1 問ストリーミング表示（最小 Console・async I/O）
 
-**完了基準**: `pcagent --ask "CPU温度は？"` でツール呼び出し→ストリーミング回答が逐次表示。警告ゼロ。
+**完了基準**: `pcagent --ask "<質問>"` でツール呼び出し→ストリーミング回答。✅ **配線達成**（0 警告 / 0 エラー、DI 解決・未設定経路を確認）。実 LLM 往復は Foundry 等の接続情報設定時に動作（現環境は未設定のため未実行）。
 
 ---
 
