@@ -13,4 +13,7 @@
     <File Path="publish.bat" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="PcAgent.Diagnostics/PcAgent.Diagnostics.csproj" />
+  <Project Path="PcAgent.Agent/PcAgent.Agent.csproj" />
+  <Project Path="PcAgent.Tui/PcAgent.Tui.csproj" />
 </Solution>
