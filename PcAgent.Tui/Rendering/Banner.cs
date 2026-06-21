@@ -39,7 +39,7 @@ internal static class Banner
             AnsiConsole.MarkupLine($"  [{Palette[i % Palette.Length]}]{Markup.Escape(logo[i])}[/]");
         }
 
-        var tagline = "[grey70]Windows PC diagnostics & information agent[/]";
+        var tagline = "[italic deepskyblue1]Windows PC diagnostics & information agent[/]";
         AnsiConsole.MarkupLine($"  {tagline}");
 
         Separator.Line(logo[0].Length, indent: 2);

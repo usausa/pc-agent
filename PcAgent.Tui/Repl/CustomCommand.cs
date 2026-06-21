@@ -56,8 +56,6 @@ public sealed partial class CustomCommand : ISlashCommand
             return;
         }
 
-        var youLine = $"[bold green]> you[/]  [silver]/{Markup.Escape(Name)} {Markup.Escape(arguments)}[/]";
-        AnsiConsole.MarkupLine(youLine);
         await ConversationRenderer.StreamAsync(conversation, prompt, cancellationToken);
     }
 

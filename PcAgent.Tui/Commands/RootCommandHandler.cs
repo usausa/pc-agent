@@ -32,7 +32,7 @@ public sealed class RootCommandHandler(IAgentConversation conversation, ReplSess
             return;
         }
 
-        var youLine = $"[bold green]> you[/]  [silver]{Markup.Escape(ask)}[/]";
+        var youLine = $"[grey50]●[/]  [white]{Markup.Escape(ask)}[/]";
         AnsiConsole.MarkupLine(youLine);
         await ConversationRenderer.StreamAsync(conversation, ask, context.CancellationToken);
     }

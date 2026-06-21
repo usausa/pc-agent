@@ -20,6 +20,11 @@ public sealed class ReplSession(
 {
     public async Task RunAsync(CancellationToken cancellationToken)
     {
+        if (!Console.IsOutputRedirected)
+        {
+            AnsiConsole.Clear();
+        }
+
         Banner.Show();
 
         var commandList = Merge(commands, customCommandLoader.Load());

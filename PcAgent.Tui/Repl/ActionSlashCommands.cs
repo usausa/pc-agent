@@ -106,7 +106,7 @@ public sealed class CleanCommand(IOptions<ActionsOptions> options) : ISlashComma
 
         foreach (var item in plan.Items.Take(15))
         {
-            var line = $"  [silver]{Markup.Escape(item.Path)}  ({Bytes(item.Bytes)})[/]";
+            var line = $"  [#b1b9f9]{Markup.Escape(item.Path)}[/]  [silver]({Bytes(item.Bytes)})[/]";
             AnsiConsole.MarkupLine(line);
         }
 

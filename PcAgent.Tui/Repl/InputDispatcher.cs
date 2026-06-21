@@ -71,7 +71,6 @@ public sealed class InputDispatcher(
         }
 
         var message = question + "\n\n[参考情報: " + collector.DisplayName + "]\n" + CollectorText.ToText(result);
-        EchoYou(line);
         await ConversationRenderer.StreamAsync(conversation, message, cancellationToken);
     }
 
@@ -83,7 +82,6 @@ public sealed class InputDispatcher(
             return;
         }
 
-        EchoYou(line);
         await ConversationRenderer.StreamAsync(conversation, line, cancellationToken);
     }
 
@@ -91,12 +89,6 @@ public sealed class InputDispatcher(
     {
         var space = text.IndexOf(' ', StringComparison.Ordinal);
         return space < 0 ? (text, String.Empty) : (text[..space], text[(space + 1)..].Trim());
-    }
-
-    private static void EchoYou(string line)
-    {
-        var youLine = $"[bold green]> you[/]  [silver]{Markup.Escape(line)}[/]";
-        AnsiConsole.MarkupLine(youLine);
     }
 
     private static void NotConfigured()
