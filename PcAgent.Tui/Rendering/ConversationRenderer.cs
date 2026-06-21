@@ -106,13 +106,15 @@ internal static partial class ConversationRenderer
         var heading = HeadingPattern().Match(line);
         if (heading.Success)
         {
-            return $"[bold deepskyblue1]{ApplyInline(heading.Groups[1].Value)}[/]";
+            // ### 等は章題を表す絵文字 + 色に置換する。
+            return $"🔖 [bold deepskyblue1]{ApplyInline(heading.Groups[1].Value)}[/]";
         }
 
         var bullet = BulletPattern().Match(line);
         if (bullet.Success)
         {
-            return $"{bullet.Groups[1].Value}[deepskyblue1]-[/] [white]{ApplyInline(bullet.Groups[2].Value)}[/]";
+            // 箇条書きは暖色(補色)のマーカーで青系に偏らせない。
+            return $"{bullet.Groups[1].Value}[orange1]-[/] [white]{ApplyInline(bullet.Groups[2].Value)}[/]";
         }
 
         return $"[white]{ApplyInline(line)}[/]";
@@ -122,7 +124,7 @@ internal static partial class ConversationRenderer
     private static string ApplyInline(string text)
     {
         var escaped = Markup.Escape(text);
-        escaped = BoldPattern().Replace(escaped, "[aqua]$1[/]");
+        escaped = BoldPattern().Replace(escaped, "[gold1]$1[/]");
         escaped = CodePattern().Replace(escaped, $"[{CommandColor}]$1[/]");
         return escaped;
     }
