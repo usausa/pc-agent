@@ -330,14 +330,14 @@ public interface IRuleEngine { DiagnosisReport Evaluate(Snapshot snapshot); }
 **参照**: Feature10（`TextSearchProvider`/`TextSearchResult`）、Feature06（`AIContextProvider`/`AIContext`）。
 
 **チェックリスト**
-- [ ] `knowledge/`（ポリシー/対処）ローダー、`Rag:Enabled`/`Rag:KnowledgePath` 反映
-- [ ] `TextSearchProvider` 構築（検索デリゲート、`SourceName` 出典）
-- [ ] `PcContextProvider`（スナップショット注入、プロンプトインジェクション対策）
-- [ ] エージェント生成を `ChatClientAgentOptions` + `AIContextProviders` へ移行
-- [ ] 「根拠が無いことは推測しない」指示（幻覚抑制）
-- [ ] 出典が回答に提示されることを確認
+- [x] `KnowledgeStore`（`knowledge/*.md` ローダー + 簡易トークン検索）、`Rag:Enabled`/`Rag:KnowledgePath` 反映。docs 4 本(disk-space/temperature/ssd-wear/smart)を同梱
+- [x] `TextSearchProvider` 構築（検索デリゲート、`SourceName`=ファイル名で出典）
+- [x] `PcContextProvider : AIContextProvider`（毎ターン 時刻/マシン/権限/最使用ドライブ を Instructions 注入。**システム由来の値のみ**でインジェクション対策）
+- [x] エージェント生成を `ChatClientAgentOptions { ChatOptions{Instructions,Tools}, AIContextProviders=[context, rag] }` へ移行
+- [x] 「ナレッジを根拠に・出典提示・根拠が無ければ不明」指示（幻覚抑制）
+- [~] 出典が回答に提示されること: **実 LLM 接続時に確認**（現環境は未設定。配線はコンパイル検証済み）
 
-**完了基準**: 診断助言にポリシー出典が反映され、毎ターン現在値が注入される。警告ゼロ。
+**完了基準**: 診断助言にポリシー出典が反映され、毎ターン現在値が注入される。✅ **配線達成**（0 警告 / 0 エラー、API コンパイル検証・knowledge 出力同梱・回帰なし）。RAG/注入の表示効果は接続情報設定時に動作。
 
 ---
 
