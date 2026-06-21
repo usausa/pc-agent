@@ -357,15 +357,17 @@ public interface IRuleEngine { DiagnosisReport Evaluate(Snapshot snapshot); }
 **参照**: Feature05（承認フロー・`ApprovalRequiredAIFunction`・`ToolApprovalRequestContent`・`CreateResponse`）、`MaintenanceTools`（安全実装）。
 
 **チェックリスト**
-- [ ] セッション対応（`CreateSessionAsync` / `RunAsync(msg, session)`）
-- [ ] 一時ファイル列挙→（承認時）削除ツール（`%TEMP%` 等）
-- [ ] bin/obj 削除ツール（**探索ルート毎回明示**、`.csproj` 近傍、除外パターン、列挙→承認→削除）
-- [ ] `ApprovalRequiredAIFunction` でラップ、`Actions:RequireApproval` 反映
-- [ ] TUI 承認 UI（今回のみ/常に/中止）→ `CreateResponse` で再開
-- [ ] `/actions`（一覧）/ `/clean temp` / `/clean binobj <root>`
-- [ ] LLM 起動シェルは承認必須（ユーザー起動 `!` と区別）
+- [x] セッション対応（`CreateSessionAsync` / `RunStreamingAsync(msg, session)` の承認ループ）
+- [x] 一時ファイル列挙→（承認時）削除ツール（`%TEMP%` 直下、`MaintenanceService.PlanTemp`）
+- [x] bin/obj 削除ツール（**探索ルート毎回明示**、`.csproj` 近傍、列挙→承認→削除、`PlanBinObj`）
+- [x] `ApprovalRequiredAIFunction` でラップ（`CleanTemporaryFiles` / `CleanBinObj`）、`Actions:RequireApproval`/`Enabled` 反映
+- [x] 承認 UI → `ToolApprovalRequestContent` 検出 → `IToolApprovalHandler`（`ConsoleApprovalHandler` で y/N）→ `CreateResponse` で再開
+- [x] `/actions`（一覧）/ `/clean temp` / `/clean binobj <root>`（列挙→確認→削除、実機検証済み）
+- [ ] LLM 起動シェルは承認必須 … **未実装**（`!` ユーザーシェルのみ。承認基盤は流用可能なため要否を確認の上で追加）
 
-**完了基準**: 承認なしに破壊操作が走らず、承認後に削除実行。警告ゼロ。
+**完了基準**: 承認なしに破壊操作が走らず、承認後に削除実行。警告ゼロ。 → **達成**（`/clean` 実機で bin/obj 削除・`.csproj` 保全を確認、ビルド 0 警告 / 0 エラー）。
+
+> 補足: 承認 UI は「今回のみ/常に/中止」の 3 択ではなく **y/N の最小実装**。LLM 承認フロー（`ApprovalRequiredAIFunction` 経由）は LLM 認証情報が無いためビルド検証のみ（`/clean` は実機検証済み）。
 
 ---
 

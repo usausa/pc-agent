@@ -13,16 +13,26 @@ using PcAgent.Agent.Options;
 using PcAgent.Agent.Rag;
 using PcAgent.Agent.Tools;
 
-// 実 LLM(Microsoft Agent Framework)を用いた対話。ツール + RAG + コンテキスト注入を構成する。
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+
+// 実 LLM(Microsoft Agent Framework)を用いた対話。ツール + RAG + コンテキスト注入 + HITL 承認を構成する。
 public sealed class PcAgentConversation : IAgentConversation
 {
     private readonly AIAgent? agent;
 
-    public PcAgentConversation(IOptions<LlmOptions> options, IOptions<RagOptions> ragOptions, PcInfoTools tools)
+    private readonly IToolApprovalHandler approvalHandler;
+
+    public PcAgentConversation(
+        IOptions<LlmOptions> options,
+        IOptions<RagOptions> ragOptions,
+        PcInfoTools tools,
+        IToolApprovalHandler handler)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(ragOptions);
         ArgumentNullException.ThrowIfNull(tools);
+
+        approvalHandler = handler;
 
         var llm = options.Value;
         AgentName = "PcAgent";
@@ -39,8 +49,7 @@ public sealed class PcAgentConversation : IAgentConversation
         var rag = ragOptions.Value;
         if (rag.Enabled)
         {
-            var store = new KnowledgeStore(Resolve(rag.KnowledgePath));
-            providers.Add(BuildRagProvider(store));
+            providers.Add(BuildRagProvider(new KnowledgeStore(Resolve(rag.KnowledgePath))));
         }
 
         var agentOptions = new ChatClientAgentOptions
@@ -49,14 +58,17 @@ public sealed class PcAgentConversation : IAgentConversation
             ChatOptions = new ChatOptions
             {
                 Instructions =
-                    "あなたはこの Windows PC の状態を調べるアシスタントです。" +
-                    "PC の情報に関する質問には必ずツールで実際の値を取得し、結果を簡潔に日本語でまとめて答えてください。" +
+                    "あなたはこの Windows PC の状態を調べ、必要に応じて修復するアシスタントです。" +
+                    "情報の質問には必ずツールで実際の値を取得し、簡潔に日本語でまとめて答えてください。" +
                     "ナレッジ(参考情報)が提供された場合はそれを根拠として活用し、可能なら出典(SourceName)を示してください。" +
+                    "一時ファイル削除や bin/obj 削除などの修復は、承認が必要なツールとして用意されています。" +
                     "値や根拠が得られない場合は推測せず『不明』と答えてください。",
                 Tools =
                 [
                     AIFunctionFactory.Create(tools.GetPcInfo),
                     AIFunctionFactory.Create(tools.ListCategories),
+                    new ApprovalRequiredAIFunction(AIFunctionFactory.Create(MaintenanceTools.CleanTemporaryFiles)),
+                    new ApprovalRequiredAIFunction(AIFunctionFactory.Create(MaintenanceTools.CleanBinObj)),
                 ],
             },
             AIContextProviders = providers,
@@ -81,32 +93,59 @@ public sealed class PcAgentConversation : IAgentConversation
             yield break;
         }
 
+        var session = await agent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
         var toolNames = new Dictionary<string, string>(StringComparer.Ordinal);
+        IEnumerable<ChatMessage> input = [new ChatMessage(ChatRole.User, userMessage)];
 
-        await foreach (var update in agent.RunStreamingAsync(userMessage, cancellationToken: cancellationToken).ConfigureAwait(false))
+        while (true)
         {
-            foreach (var content in update.Contents)
+            var approvals = new List<ToolApprovalRequestContent>();
+
+            await foreach (var update in agent.RunStreamingAsync(input, session, cancellationToken: cancellationToken).ConfigureAwait(false))
             {
-                switch (content)
+                foreach (var content in update.Contents)
                 {
-                    case FunctionCallContent call:
-                        toolNames[call.CallId] = call.Name;
-                        yield return new ToolCallStarted(call.Name, FormatArguments(call));
-                        break;
-                    case FunctionResultContent result:
-                        var name = toolNames.TryGetValue(result.CallId, out var resolved) ? resolved : result.CallId;
-                        yield return new ToolCallCompleted(name, result.Result?.ToString() ?? String.Empty);
-                        break;
-                    default:
-                        break;
+                    switch (content)
+                    {
+                        case FunctionCallContent call:
+                            toolNames[call.CallId] = call.Name;
+                            yield return new ToolCallStarted(call.Name, FormatArguments(call));
+                            break;
+                        case FunctionResultContent result:
+                            var name = toolNames.TryGetValue(result.CallId, out var resolved) ? resolved : result.CallId;
+                            yield return new ToolCallCompleted(name, result.Result?.ToString() ?? String.Empty);
+                            break;
+                        case ToolApprovalRequestContent approval:
+                            approvals.Add(approval);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                var text = update.ToString();
+                if (!String.IsNullOrEmpty(text))
+                {
+                    yield return new TextDelta(text);
                 }
             }
 
-            var text = update.ToString();
-            if (!String.IsNullOrEmpty(text))
+            if (approvals.Count == 0)
             {
-                yield return new TextDelta(text);
+                break;
             }
+
+            var responses = new List<AIContent>();
+            foreach (var approval in approvals)
+            {
+                var call = approval.ToolCall as FunctionCallContent;
+                var toolName = call?.Name ?? "tool";
+                var arguments = call is not null ? FormatArguments(call) : String.Empty;
+                var approved = await approvalHandler.ApproveAsync(toolName, arguments, cancellationToken).ConfigureAwait(false);
+                responses.Add(approval.CreateResponse(approved, approved ? "approved by user" : "rejected by user"));
+            }
+
+            input = [new ChatMessage(ChatRole.User, responses)];
         }
 
         yield return new ResponseCompleted();

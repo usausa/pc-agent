@@ -2,6 +2,7 @@ namespace PcAgent.Tui;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using PcAgent.Agent;
 using PcAgent.Tui.Repl;
 
 // TUI(REPL・スラッシュコマンド・ディスパッチ)の DI 登録拡張。
@@ -21,6 +22,10 @@ public static class TuiServiceCollectionExtensions
         services.AddSingleton<ISlashCommand, DiagnoseSlashCommand>();
         services.AddSingleton<ISlashCommand, ReportCommand>();
         services.AddSingleton<ISlashCommand, RulesCommand>();
+        services.AddSingleton<ISlashCommand, ActionsCommand>();
+        services.AddSingleton<ISlashCommand, CleanCommand>();
+
+        services.AddSingleton<IToolApprovalHandler, ConsoleApprovalHandler>();
 
         services.AddSingleton<ShellRunner>();
         services.AddSingleton<InputDispatcher>();
