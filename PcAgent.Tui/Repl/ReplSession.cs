@@ -1,5 +1,7 @@
 namespace PcAgent.Tui.Repl;
 
+using System.Diagnostics;
+
 using Microsoft.Extensions.Options;
 
 using PcAgent.Diagnostics.Collectors;
@@ -13,18 +15,20 @@ public sealed class ReplSession(
     InputDispatcher dispatcher,
     IEnumerable<ISlashCommand> commands,
     IEnumerable<ICollector> collectors,
+    CustomCommandLoader customCommandLoader,
     IOptions<UiOptions> uiOptions)
 {
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         Banner.Show();
 
-        var commandList = commands.OrderBy(static c => c.Name, StringComparer.Ordinal).ToList();
+        var commandList = Merge(commands, customCommandLoader.Load());
         var slashNames = commandList.Select(static c => c.Name).ToList();
         var sourceNames = collectors.Select(static c => c.Name).OrderBy(static n => n, StringComparer.Ordinal).ToList();
 
         var reader = CreateReader(slashNames, sourceNames, uiOptions.Value);
         var context = new SlashCommandContext { Commands = commandList };
+        var stopwatch = Stopwatch.StartNew();
 
         try
         {
@@ -51,6 +55,7 @@ public sealed class ReplSession(
                     continue;
                 }
 
+                context.Inputs++;
                 await dispatcher.DispatchAsync(trimmed, context, cancellationToken);
             }
         }
@@ -62,8 +67,27 @@ public sealed class ReplSession(
             }
         }
 
+        stopwatch.Stop();
         var bye = "[silver]bye.[/]";
         AnsiConsole.MarkupLine(bye);
+        ExitSummary.Show(context.Inputs, context.Findings, stopwatch.Elapsed);
+    }
+
+    // 組み込みコマンドにカスタムコマンドを統合する。同名は組み込み優先。
+    private static List<ISlashCommand> Merge(IEnumerable<ISlashCommand> builtIn, IReadOnlyList<ISlashCommand> custom)
+    {
+        var map = new Dictionary<string, ISlashCommand>(StringComparer.OrdinalIgnoreCase);
+        foreach (var command in builtIn)
+        {
+            map[command.Name] = command;
+        }
+
+        foreach (var command in custom)
+        {
+            map.TryAdd(command.Name, command);
+        }
+
+        return map.Values.OrderBy(static c => c.Name, StringComparer.Ordinal).ToList();
     }
 
     private static IInputReader CreateReader(IReadOnlyList<string> slashNames, IReadOnlyList<string> sourceNames, UiOptions ui)

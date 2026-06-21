@@ -418,16 +418,18 @@ public interface IRuleEngine { DiagnosisReport Evaluate(Snapshot snapshot); }
 **参照**: 付録 A（カスタムコマンド形式）、Feature14（評価）/Feature13（圧縮、`MAAI001` 局所抑制は事前相談）。
 
 **チェックリスト**
-- [ ] Markdown カスタムコマンド（frontmatter `name/description/argument-hint`、`$ARGUMENTS`/`!cmd`/`@path`）
-- [ ] グローバル/プロジェクト 2 層（プロジェクト優先）の探索
-- [ ] 終了時サマリ表示
-- [ ] （任意）評価（`LocalEvaluator`）を CI 用に
-- [ ] （任意）履歴圧縮（`CompactionProvider`、`MAAI001` 抑制は事前相談）
-- [ ] publish：SelfContained / SingleFile / **Trimming なし** で単一 exe 生成
-- [ ] `README.md` 更新（使い方・前提=管理者権限・設定）
-- [ ] 全フェーズ通しの手動シナリオ確認
+- [x] Markdown カスタムコマンド（frontmatter `name/description/argument-hint`、`$ARGUMENTS`/`$1..`・`@collector`・`` !`cmd` ``）— `/pc-check` で実機確認
+- [x] グローバル/プロジェクト 2 層（プロジェクト優先＝後勝ち、`~` 展開）の探索（`CustomCommandLoader`）
+- [x] 終了時サマリ表示（`ExitSummary`：入力件数 / 指摘件数 / 経過。実機 `入力 3 / 指摘 2 / 経過 1 秒`）
+- [ ] （任意）評価（`LocalEvaluator`）を CI 用に … **未実装**（任意・後続）
+- [ ] （任意）履歴圧縮（`CompactionProvider`、`MAAI001` 抑制は事前相談）… **未実装**（任意・後続）
+- [x] publish：SelfContained / SingleFile / **Trimming なし** で単一 exe 生成（`win-x64.pubxml`、48.7MB 単一 exe・loose DLL 0・発行版 `diagnose` 実機動作）
+- [x] `README.md` 更新（使い方・前提=管理者権限・設定・カスタムコマンド・発行）
+- [~] 全フェーズ通しの手動シナリオ確認 … REPL/カスタムコマンド/終了サマリ/発行は実機確認。LLM 依存経路（対話/RAG/承認/層2ログ）は認証情報が必要で未確認
 
-**完了基準**: カスタムコマンドが追加で動作し、単一 exe 発行成功。警告ゼロ。
+**完了基準**: カスタムコマンドが追加で動作し、単一 exe 発行成功。警告ゼロ。 → **達成**（`/pc-check` 展開＋エージェント送出、48.7MB 単一 exe 発行・実機動作、ビルド 0 警告 / 0 エラー）。
+
+> 補足: 起動バナーの陳腐化ヒントを REPL 操作案内へ更新。`@` はコレクタ情報注入（仕様 §13.3）で、ファイルパス注入ではない。任意機能（評価/圧縮）は未実装のため `MAAI001` 抑制の事前相談は発生していない。
 
 ---
 

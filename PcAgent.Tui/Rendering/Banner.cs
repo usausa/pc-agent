@@ -12,7 +12,7 @@ internal static class Banner
         var tagline = "[silver]Windows PC diagnostics & information agent[/]";
         AnsiConsole.MarkupLine(tagline);
 
-        var hint = "[silver]対話モードはフェーズ5で実装予定。--ask \"<質問>\" で単発質問、--help でコマンド一覧。[/]";
+        var hint = "[silver]/help でコマンド一覧。@<category> で情報取得、!<command> でシェル、その他はエージェントへ。/exit で終了。[/]";
         AnsiConsole.MarkupLine(hint);
 
         AnsiConsole.WriteLine();

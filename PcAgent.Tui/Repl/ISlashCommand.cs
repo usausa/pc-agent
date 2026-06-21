@@ -24,4 +24,10 @@ public sealed class SlashCommandContext
 
     // 終了が要求されたか。
     public bool ExitRequested { get; set; }
+
+    // 処理した入力件数(終了サマリ用)。
+    public int Inputs { get; set; }
+
+    // 診断で発見した指摘件数(Warning 以上、終了サマリ用)。
+    public int Findings { get; set; }
 }

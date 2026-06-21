@@ -32,6 +32,7 @@ builder.Services.AddDiagnostics(builder.Configuration);
 builder.Services.AddPcAgent(builder.Configuration);
 builder.Services.AddTui();
 builder.Services.Configure<UiOptions>(builder.Configuration.GetSection(UiOptions.SectionName));
+builder.Services.Configure<CustomizationOptions>(builder.Configuration.GetSection(CustomizationOptions.SectionName));
 
 builder.ConfigureCommands(static commands =>
 {

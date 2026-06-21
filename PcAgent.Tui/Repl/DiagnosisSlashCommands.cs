@@ -5,6 +5,7 @@ using System.Globalization;
 using Microsoft.Extensions.Options;
 
 using PcAgent.Diagnostics;
+using PcAgent.Diagnostics.Models;
 using PcAgent.Diagnostics.Options;
 using PcAgent.Diagnostics.Rules;
 using PcAgent.Tui.Rendering;
@@ -24,6 +25,7 @@ public sealed class HealthCommand(SnapshotBuilder builder, RuleEngine engine) : 
     {
         var report = await DiagnosisExecutor.RunAsync(builder, engine, cancellationToken);
         DiagnosisRenderer.RenderSummary(report);
+        context.Findings += report.Findings.Count(static f => f.Severity >= Severity.Warning);
     }
 }
 
@@ -40,6 +42,7 @@ public sealed class DiagnoseSlashCommand(SnapshotBuilder builder, RuleEngine eng
     {
         var report = await DiagnosisExecutor.RunAsync(builder, engine, cancellationToken);
         DiagnosisRenderer.Render(report);
+        context.Findings += report.Findings.Count(static f => f.Severity >= Severity.Warning);
     }
 }
 
@@ -56,6 +59,7 @@ public sealed class ReportCommand(SnapshotBuilder builder, RuleEngine engine) : 
     {
         var report = await DiagnosisExecutor.RunAsync(builder, engine, cancellationToken);
         DiagnosisRenderer.Render(report);
+        context.Findings += report.Findings.Count(static f => f.Severity >= Severity.Warning);
 
         if (String.Equals(arguments.Trim(), "save", StringComparison.OrdinalIgnoreCase))
         {

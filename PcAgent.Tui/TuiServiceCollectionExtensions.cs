@@ -28,6 +28,7 @@ public static class TuiServiceCollectionExtensions
         services.AddSingleton<IToolApprovalHandler, ConsoleApprovalHandler>();
 
         services.AddSingleton<ShellRunner>();
+        services.AddSingleton<CustomCommandLoader>();
         services.AddSingleton<InputDispatcher>();
         services.AddSingleton<ReplSession>();
 
