@@ -427,3 +427,6 @@ CLAUDE.local.md
 # Custom
 desktop.ini
 __*
+
+# PcAgent: ユーザー/プロジェクトのカスタマイズ置き場(カスタムコマンド等)
+.pcagent/

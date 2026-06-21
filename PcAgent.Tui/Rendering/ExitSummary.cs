@@ -18,6 +18,7 @@ internal static class ExitSummary
             : "[green]0[/]";
 
         AnsiConsole.WriteLine();
+        Separator.Line(48);
         var line = $"📋 [silver]セッション概要[/]  入力 [aqua]{inputs.ToString(CultureInfo.InvariantCulture)}[/] 件 / 指摘 {problems} 件 / 経過 [aqua]{time}[/]";
         AnsiConsole.MarkupLine(line);
     }

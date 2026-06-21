@@ -6,7 +6,7 @@ using PcAgent.Diagnostics.Models;
 
 using Spectre.Console;
 
-// 診断レポートを Spectre で表示する(罫線なし・絵文字ステータス)。
+// 診断レポートを Spectre で表示する(box-drawing 罫線なし・ハイフン区切り・絵文字ステータス)。
 internal static class DiagnosisRenderer
 {
     public static void Render(DiagnosisReport report)
@@ -14,6 +14,7 @@ internal static class DiagnosisRenderer
         var count = report.Findings.Count.ToString(CultureInfo.InvariantCulture);
         var overall = $"[bold]{Icon(report.Overall)} 診断結果: {Text(report.Overall)}[/]  [silver]({count} 件)[/]";
         AnsiConsole.MarkupLine(overall);
+        Separator.Line(48);
 
         if (report.Findings.Count == 0)
         {
@@ -28,6 +29,7 @@ internal static class DiagnosisRenderer
 
         if (report.Actions.Count > 0)
         {
+            Separator.Line(48);
             var head = "[silver]推奨アクション:[/]";
             AnsiConsole.MarkupLine(head);
             foreach (var action in report.Actions)

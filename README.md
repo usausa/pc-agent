@@ -97,6 +97,13 @@ argument-hint: [メモ]
 
 展開結果はエージェントへ送られる（LLM 未設定時は展開結果のみ表示）。
 
+### 配置と管理
+
+- **2 層**: `~/.pcagent/commands`（ユーザーごと・ホーム配下、インストール場所に依存せず常に有効）と `<起動時のカレントディレクトリ>/.pcagent/commands`（プロジェクトごと・exe の場所ではなくカレント基準）。
+- **発行物には同梱されない**（配布物は exe + `appsettings.json` + `rules/` + `knowledge/`）。利用者が上記の場所に後から配置する。
+- **ソース管理**: 個人用は追跡しない（本リポジトリは `.pcagent/` を gitignore 済み）。チームで共有したいプロジェクトコマンドはそのプロジェクト側でコミット可。
+- **形式の見本**: [`examples/commands/pc-check.md`](examples/commands/pc-check.md)。
+
 ## 発行(単一ファイル)
 
 自己完結・単一ファイル・**Trimming なし**（LibreHardwareMonitor 互換性のため）。

@@ -6,7 +6,8 @@ using PcAgent.Diagnostics.Models;
 
 using Spectre.Console;
 
-// CollectorResult を Spectre.Console でリッチ表示する。罫線は使わず、色 + 絵文字 + 進捗バーで表現。
+// CollectorResult を Spectre.Console でリッチ表示する。桁ずれする box-drawing 罫線は使わず、
+// 色 + 絵文字 + 進捗バー + ハイフン区切りで表現。
 internal static class InfoRenderer
 {
     public static void Render(IReadOnlyList<CollectorResult> results)
@@ -15,6 +16,7 @@ internal static class InfoRenderer
         {
             var header = $"[bold aqua]{IconFor(result.Collector)} {Markup.Escape(result.DisplayName)}[/]";
             AnsiConsole.MarkupLine(header);
+            Separator.Line(48);
 
             if (result.Note is { Length: > 0 })
             {
