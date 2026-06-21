@@ -2,7 +2,7 @@
 
 Windows PC の情報取得・診断・修復を行うエージェント CLI。情報収集(ハードウェア/SMART/システム)、外部ルールによる決定的な診断、LLM との対話(ストリーミング)、承認付きの修復アクションを 1 つの TUI に統合する。
 
-<img src="docs/pc-agent.png" title="Image" width="50%">
+<img src="docs/pc-agent.png" title="Image" />
 
 - **基盤**: .NET 10 / C# / [Smart.CommandLine.Hosting](https://www.nuget.org/packages/Usa.Smart.CommandLine.Hosting)
 - **エージェント**: Microsoft Agent Framework (`Microsoft.Agents.AI`)
