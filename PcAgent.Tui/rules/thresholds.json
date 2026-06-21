@@ -1,0 +1,8 @@
+{
+  "cpu": { "tempWarn": 85, "tempCrit": 95 },
+  "gpu": { "tempWarn": 85, "tempCrit": 95 },
+  "memory": { "loadWarn": 90 },
+  "disk": { "usedWarn": 90, "usedCrit": 95 },
+  "ssd": { "usedWarn": 90, "usedCrit": 97 },
+  "battery": { "degradationInfo": 20, "degradationWarn": 40 }
+}

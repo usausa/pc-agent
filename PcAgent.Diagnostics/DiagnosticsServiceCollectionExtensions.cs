@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PcAgent.Diagnostics.Collectors;
 using PcAgent.Diagnostics.Hardware;
 using PcAgent.Diagnostics.Options;
+using PcAgent.Diagnostics.Rules;
 
 // 情報取得・診断機能の DI 登録拡張。
 public static class DiagnosticsServiceCollectionExtensions
@@ -29,7 +30,9 @@ public static class DiagnosticsServiceCollectionExtensions
         services.AddSingleton<ICollector, SmartCollector>();
         services.AddSingleton<ICollector, SystemCollector>();
 
-        // ルールエンジンはフェーズ6で登録する。
+        services.AddSingleton<SnapshotBuilder>();
+        services.AddSingleton<RuleEngine>();
+
         return services;
     }
 }

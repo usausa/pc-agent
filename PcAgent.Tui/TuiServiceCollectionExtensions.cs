@@ -17,6 +17,10 @@ public static class TuiServiceCollectionExtensions
         services.AddSingleton<ISlashCommand, StatusCommand>();
         services.AddSingleton<ISlashCommand, ConfigCommand>();
         services.AddSingleton<ISlashCommand, DoctorCommand>();
+        services.AddSingleton<ISlashCommand, HealthCommand>();
+        services.AddSingleton<ISlashCommand, DiagnoseSlashCommand>();
+        services.AddSingleton<ISlashCommand, ReportCommand>();
+        services.AddSingleton<ISlashCommand, RulesCommand>();
 
         services.AddSingleton<ShellRunner>();
         services.AddSingleton<InputDispatcher>();

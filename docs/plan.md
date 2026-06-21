@@ -300,17 +300,17 @@ public interface IRuleEngine { DiagnosisReport Evaluate(Snapshot snapshot); }
 **参照**: 仕様 §13.1/§13.2（JSON スキーマ）、§5.2（初期ルール表・**仮値**）。
 
 **チェックリスト**
-- [ ] `rules/thresholds.json` / `rules/rules.json` の雛形（仮値）を同梱
-- [ ] ローダー（`Microsoft.Extensions.Configuration` or 専用 JSON、`reloadOnChange`）
-- [ ] `MetricPathResolver`（スナップショット → メトリクスパス）
-- [ ] `IRuleEngine`：演算子（`<,<=,>,>=,==,!=`）・`{ref}` 閾値参照・重大度判定
-- [ ] `DiagnosisReport` 生成（ルールが直接生成。LLM 非依存）
-- [ ] 診断ダッシュボード描画（**枠なしテーブル + 絵文字 ✅/⚠️/❌ + `BarChart`**）
-- [ ] `/health`（概況）/ `/diagnose [category]` / `/report [--save]` / `/rules [reload]`
-- [ ] `DiagnoseCommand`（非対話・`--json`）が同エンジンを再利用
-- [ ] LLM はレポートを受けて説明・優先順位をストリーミング（構造化はルール側）
+- [x] `rules/thresholds.json` / `rules/rules.json`（仮値・12 ルール）を同梱（出力へコピー）
+- [x] `RuleLoader`（専用 JSON・**呼び出しごとに再読込**＝ホットリロード。コメント/トレーリングカンマ許容）
+- [x] `SnapshotBuilder`（収集→診断メトリクス path 抽出: system/cpu/gpu/memory/disk/smart/battery）
+- [x] `RuleEngine`：演算子（`<,<=,>,>=,==,!=`）・`valueRef` 閾値参照・重大度判定・同一(metric,source)は最深刻のみ ※ `{ref}` ネストは `valueRef` フラットに簡略化
+- [x] `DiagnosisReport` 生成（ルールが直接生成。LLM 非依存）
+- [x] 診断ダッシュボード描画（枠なし・絵文字 ❌/⚠️/✅ ステータス・推奨アクション）※ BarChart は P4 同様 info 側で採用
+- [x] `/health`（概況）/ `/diagnose` / `/report [save]` / `/rules` + `DiagnoseCommand`（`--json`、relaxed encoder）
+- [x] `DiagnoseCommand`（非対話・`--json`）が同エンジン（`DiagnosisExecutor`）を再利用
+- [~] LLM 説明・優先順位ストリーミング: 構造化はルール側で完了。LLM への連携は接続時に対応（`@`注入で実現可能）
 
-**完了基準**: 外部ファイルの値変更が再コンパイルなしで反映。`/health`/`/diagnose` がダッシュボード表示。警告ゼロ。
+**完了基準**: 外部ファイルの値変更が再コンパイルなしで反映。`/health`/`/diagnose` がダッシュボード表示。✅ **達成**（0 警告 / 0 エラー、`Drive N:\ 99.85%` → Critical、閾値 95→99.9 変更で Warning に即反映を確認）。
 
 ---
 

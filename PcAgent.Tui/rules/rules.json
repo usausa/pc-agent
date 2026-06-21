@@ -1,0 +1,14 @@
+[
+  { "id": "disk-space-warn", "metric": "system.diskUsedPercent", "op": ">=", "valueRef": "disk.usedWarn", "severity": "Warning", "message": "ディスクの空き容量が少なくなっています", "action": "不要ファイルの整理(/clean)を検討してください" },
+  { "id": "disk-space-crit", "metric": "system.diskUsedPercent", "op": ">=", "valueRef": "disk.usedCrit", "severity": "Critical", "message": "ディスクの空き容量が逼迫しています", "action": "不要ファイルの削除を強く推奨します" },
+  { "id": "cpu-temp-warn", "metric": "cpu.temperature", "op": ">=", "valueRef": "cpu.tempWarn", "severity": "Warning", "message": "CPU 温度が高めです" },
+  { "id": "cpu-temp-crit", "metric": "cpu.temperature", "op": ">=", "valueRef": "cpu.tempCrit", "severity": "Critical", "message": "CPU 温度が危険水準です", "action": "冷却・ホコリ・負荷を確認してください" },
+  { "id": "gpu-temp-warn", "metric": "gpu.temperature", "op": ">=", "valueRef": "gpu.tempWarn", "severity": "Warning", "message": "GPU 温度が高めです" },
+  { "id": "gpu-temp-crit", "metric": "gpu.temperature", "op": ">=", "valueRef": "gpu.tempCrit", "severity": "Critical", "message": "GPU 温度が危険水準です", "action": "冷却・負荷を確認してください" },
+  { "id": "memory-load-warn", "metric": "memory.loadPercent", "op": ">=", "valueRef": "memory.loadWarn", "severity": "Warning", "message": "メモリ使用率が高い状態です" },
+  { "id": "smart-critical", "metric": "smart.criticalWarning", "op": "!=", "value": 0, "severity": "Critical", "message": "SMART 重大警告が発生しています", "action": "速やかにバックアップを取得してください" },
+  { "id": "smart-media-errors", "metric": "smart.mediaErrors", "op": ">", "value": 0, "severity": "Warning", "message": "SMART メディアエラーが検出されています", "action": "バックアップを推奨します" },
+  { "id": "ssd-wear-warn", "metric": "smart.percentageUsed", "op": ">=", "valueRef": "ssd.usedWarn", "severity": "Warning", "message": "SSD の消耗が進んでいます", "action": "交換時期の計画を検討してください" },
+  { "id": "ssd-wear-crit", "metric": "smart.percentageUsed", "op": ">=", "valueRef": "ssd.usedCrit", "severity": "Critical", "message": "SSD の寿命が近づいています", "action": "バックアップと交換を推奨します" },
+  { "id": "battery-degradation", "metric": "battery.degradation", "op": ">=", "valueRef": "battery.degradationWarn", "severity": "Warning", "message": "バッテリーの劣化が進んでいます" }
+]
