@@ -2,6 +2,8 @@
 
 Windows PC の情報取得・診断・修復を行うエージェント CLI。情報収集(ハードウェア/SMART/システム)、外部ルールによる決定的な診断、LLM との対話(ストリーミング)、承認付きの修復アクションを 1 つの TUI に統合する。
 
+<img src="docs/ai-agent.gif" title="Image" width="50%">
+
 - **基盤**: .NET 10 / C# / [Smart.CommandLine.Hosting](https://www.nuget.org/packages/Usa.Smart.CommandLine.Hosting)
 - **エージェント**: Microsoft Agent Framework (`Microsoft.Agents.AI`)
 - **TUI**: [Spectre.Console](https://spectreconsole.net/) + [PrettyPrompt](https://github.com/waf/PrettyPrompt)（日本語優先・絵文字/進捗グラフ・桁ずれしないハイフン区切り）
