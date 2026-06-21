@@ -387,16 +387,18 @@ public interface IRuleEngine { DiagnosisReport Evaluate(Snapshot snapshot); }
 **参照**: Feature04（ミドルウェア 2 層）、Feature08（`UseOpenTelemetry`）。**OTLP/メトリクスはサンプルに無い**ため新規実装。
 
 **チェックリスト**
-- [ ] CLI フィルタ（`ExecutionTimeFilter`）で全コマンド時間ログ（P1 と統合）
-- [ ] エージェント実行ミドルウェア（5 引数）・ツールミドルウェア（4 引数）で時間ログ
-- [ ] `UseOpenTelemetry(sourceName, …)`、`EnableSensitiveData` 既定オフ
-- [ ] `OpenTelemetry` / `OpenTelemetry.Exporter.OpenTelemetryProtocol` 追加
-- [ ] `TracerProvider` + `AddSource(sourceName)` + `AddOtlpExporter`（**`Telemetry:Otlp:Enabled` 既定オフ**）
-- [ ] 送信先 OpenTelemetry Collector / Aspire Dashboard で受信確認
-- [ ] （任意）`MeterProvider` + カスタムメトリクス
-- [ ] （任意）Aspire AppHost プロジェクト（アプリ本体は非依存・`ServiceDefaults` は作らない）
+- [x] CLI フィルタ（`ExecutionTimeFilter`）で全コマンド時間ログ（P1 と統合、`diagnose` で実機確認）
+- [x] エージェント実行ミドルウェア（5 引数）・ツールミドルウェア（4 引数）で時間ログ（`AsBuilder().Use(...).Use(...)`、`LoggerMessage` 採用）
+- [x] `UseOpenTelemetry(AgentTelemetry.SourceName, …)`、`EnableSensitiveData` 既定オフ（`Telemetry:EnableSensitiveData`）
+- [x] `OpenTelemetry` / `OpenTelemetry.Exporter.OpenTelemetryProtocol` 追加（1.16.0）
+- [x] `TracerProvider`（`AgentTelemetry`）+ `AddSource` + `AddOtlpExporter`（**`Telemetry:Otlp:Enabled` 既定オフ**、起動時に初期化）
+- [~] 送信先 OpenTelemetry Collector / Aspire Dashboard で受信確認 … OTLP 有効化で初期化・送信試行・Exit 0 まで確認（**可視確認はコレクタ起動が必要**で本環境では未実施）
+- [ ] （任意）`MeterProvider` + カスタムメトリクス … **未実装**（任意・後続）
+- [ ] （任意）Aspire AppHost プロジェクト … **未実装**（任意・後続）
 
-**完了基準**: 既定では送信せずローカルログのみ。設定有効化で Collector/Dashboard にトレース到達。警告ゼロ。
+**完了基準**: 既定では送信せずローカルログのみ → **達成**（OTLP オフで `diagnose` 実行＋タイミングログのみ）。設定有効化で Collector/Dashboard にトレース到達 → **配線達成**（OTLP オン時に TracerProvider 初期化・スパン生成・送信試行・Exit 0。可視受信はコレクタ起動が前提）。警告ゼロ → **達成**。
+
+> 補足: 認証情報なしでも OTLP を検証できるよう、`PcAgent.Diagnostics` に依存ゼロの `ActivitySource`（`DiagnosticsTelemetry`、`SnapshotBuilder.BuildAsync` をスパン化）を用意し、Agent 側 `TracerProvider` が `AddSource` で購読する構成にした。エージェント/ツールのスパン（`UseOpenTelemetry` 経由）は LLM 認証情報が無いためビルド検証のみ。
 
 ---
 

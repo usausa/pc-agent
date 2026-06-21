@@ -8,6 +8,8 @@ public sealed class SnapshotBuilder(IEnumerable<ICollector> collectors)
 {
     public async Task<DiagnosticsSnapshot> BuildAsync(CancellationToken cancellationToken)
     {
+        using var activity = DiagnosticsTelemetry.Source.StartActivity("diagnostics.snapshot");
+
         var metrics = new List<SnapshotMetric>();
         foreach (var collector in collectors)
         {
@@ -15,6 +17,7 @@ public sealed class SnapshotBuilder(IEnumerable<ICollector> collectors)
             Extract(collector.Name, result, metrics);
         }
 
+        activity?.SetTag("metric.count", metrics.Count);
         return new DiagnosticsSnapshot(metrics, DateTimeOffset.Now);
     }
 

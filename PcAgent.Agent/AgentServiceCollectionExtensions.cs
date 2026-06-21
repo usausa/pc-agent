@@ -17,6 +17,7 @@ public static class AgentServiceCollectionExtensions
         services.Configure<RagOptions>(configuration.GetSection(RagOptions.SectionName));
 
         services.AddSingleton<PcInfoTools>();
+        services.AddSingleton<AgentTelemetry>();
         services.AddSingleton<IAgentConversation, PcAgentConversation>();
 
         return services;

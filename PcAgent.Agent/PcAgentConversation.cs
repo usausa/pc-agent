@@ -1,10 +1,12 @@
 namespace PcAgent.Agent;
 
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using OpenAI.Chat;
@@ -15,8 +17,8 @@ using PcAgent.Agent.Tools;
 
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
-// 実 LLM(Microsoft Agent Framework)を用いた対話。ツール + RAG + コンテキスト注入 + HITL 承認を構成する。
-public sealed class PcAgentConversation : IAgentConversation
+// 実 LLM(Microsoft Agent Framework)を用いた対話。ツール + RAG + コンテキスト注入 + HITL 承認 + 計測を構成する。
+public sealed partial class PcAgentConversation : IAgentConversation
 {
     private readonly AIAgent? agent;
 
@@ -26,11 +28,14 @@ public sealed class PcAgentConversation : IAgentConversation
         IOptions<LlmOptions> options,
         IOptions<RagOptions> ragOptions,
         PcInfoTools tools,
-        IToolApprovalHandler handler)
+        IToolApprovalHandler handler,
+        AgentTelemetry telemetry,
+        ILogger<PcAgentConversation> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(ragOptions);
         ArgumentNullException.ThrowIfNull(tools);
+        ArgumentNullException.ThrowIfNull(telemetry);
 
         approvalHandler = handler;
 
@@ -74,7 +79,26 @@ public sealed class PcAgentConversation : IAgentConversation
             AIContextProviders = providers,
         };
 
-        agent = chatClient.AsAIAgent(agentOptions);
+        var enableSensitiveData = telemetry.EnableSensitiveData;
+        agent = chatClient.AsAIAgent(agentOptions)
+            .AsBuilder()
+            .Use(async (messages, session, runOptions, next, cancellationToken) =>
+            {
+                var stopwatch = Stopwatch.StartNew();
+                await next(messages, session, runOptions, cancellationToken).ConfigureAwait(false);
+                stopwatch.Stop();
+                LogAgentRun(logger, stopwatch.ElapsedMilliseconds);
+            })
+            .Use(async (agentInstance, context, next, cancellationToken) =>
+            {
+                var stopwatch = Stopwatch.StartNew();
+                var result = await next(context, cancellationToken).ConfigureAwait(false);
+                stopwatch.Stop();
+                LogToolInvocation(logger, context.Function.Name, stopwatch.ElapsedMilliseconds);
+                return result;
+            })
+            .UseOpenTelemetry(AgentTelemetry.SourceName, config => config.EnableSensitiveData = enableSensitiveData)
+            .Build();
     }
 
     public string AgentName { get; }
@@ -169,4 +193,10 @@ public sealed class PcAgentConversation : IAgentConversation
 
     private static string Resolve(string path) =>
         Path.IsPathRooted(path) ? path : Path.Combine(AppContext.BaseDirectory, path);
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Agent run finished in {ElapsedMs} ms")]
+    private static partial void LogAgentRun(ILogger logger, long elapsedMs);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Tool {Tool} invoked in {ElapsedMs} ms")]
+    private static partial void LogToolInvocation(ILogger logger, string tool, long elapsedMs);
 }
