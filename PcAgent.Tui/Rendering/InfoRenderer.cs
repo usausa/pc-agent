@@ -1,58 +1,94 @@
 namespace PcAgent.Tui.Rendering;
 
 using System.Globalization;
-using System.Text;
 
 using PcAgent.Diagnostics.Models;
 
-// CollectorResult をプレーンテキストへ整形する(リッチ表示はフェーズ4で Spectre 化)。
+using Spectre.Console;
+
+// CollectorResult を Spectre.Console でリッチ表示する。罫線は使わず、色 + 絵文字 + 進捗バーで表現。
 internal static class InfoRenderer
 {
-    public static string Render(IReadOnlyList<CollectorResult> results)
+    public static void Render(IReadOnlyList<CollectorResult> results)
     {
-        var builder = new StringBuilder();
         foreach (var result in results)
         {
-            builder.Append("# ").AppendLine(result.DisplayName);
+            var header = $"[bold aqua]{IconFor(result.Collector)} {Markup.Escape(result.DisplayName)}[/]";
+            AnsiConsole.MarkupLine(header);
+
             if (result.Note is { Length: > 0 })
             {
-                builder.Append("  ! ").AppendLine(result.Note);
+                var note = $"[yellow]:warning:  {Markup.Escape(result.Note)}[/]";
+                AnsiConsole.MarkupLine(note);
             }
 
             foreach (var group in result.Groups)
             {
-                builder.Append("  ").AppendLine(group.Name);
+                var groupLine = $"  [blue]{Markup.Escape(group.Name)}[/]";
+                AnsiConsole.MarkupLine(groupLine);
+
                 if (group.Values.Count == 0)
                 {
-                    builder.AppendLine("    (no data)");
+                    var empty = "    [silver](no data)[/]";
+                    AnsiConsole.MarkupLine(empty);
                     continue;
                 }
 
                 foreach (var value in group.Values)
                 {
-                    builder.Append("    ").Append(value.Name).Append(": ").AppendLine(Format(value));
+                    AnsiConsole.MarkupLine(FormatLine(value));
                 }
             }
 
-            builder.AppendLine();
+            AnsiConsole.WriteLine();
         }
-
-        return builder.ToString();
     }
 
-    private static string Format(MetricValue value)
+    private static string FormatLine(MetricValue value)
     {
+        var name = Markup.Escape(value.Name);
+
         if (value.Text is { Length: > 0 })
         {
-            return value.Text;
+            return $"    [white]{name}[/]: [silver]{Markup.Escape(value.Text)}[/]";
         }
 
         if (value.Value is not { } number)
         {
-            return "N/A";
+            return $"    [white]{name}[/]: [silver]N/A[/]";
         }
 
         var text = number.ToString("0.##", CultureInfo.InvariantCulture);
-        return value.Unit is { Length: > 0 } unit ? $"{text} {unit}" : text;
+        var unit = value.Unit is { Length: > 0 } u ? " " + u : String.Empty;
+        var valueMarkup = $"[aqua]{text}{Markup.Escape(unit)}[/]";
+
+        if (value.Unit == "%")
+        {
+            valueMarkup += " " + Bar(number);
+        }
+
+        return $"    [white]{name}[/]: {valueMarkup}";
     }
+
+    private static string Bar(double percent)
+    {
+        var clamped = Math.Clamp(percent, 0.0, 100.0);
+        var filled = (int)Math.Round(clamped / 10.0, MidpointRounding.AwayFromZero);
+        var color = clamped >= 90.0 ? "red" : clamped >= 70.0 ? "yellow" : "green";
+        return $"[{color}]{new string('█', filled)}{new string('░', 10 - filled)}[/]";
+    }
+
+    private static string IconFor(string collector) => collector switch
+    {
+        "cpu" => ":gear:",
+        "gpu" => ":video_game:",
+        "memory" => ":bar_chart:",
+        "motherboard" => ":puzzle_piece:",
+        "disk" => ":floppy_disk:",
+        "network" => ":globe_showing_americas:",
+        "battery" => ":battery:",
+        "smart" => ":stethoscope:",
+        "system" => ":desktop_computer:",
+        _ => ":small_blue_diamond:",
+    };
 }

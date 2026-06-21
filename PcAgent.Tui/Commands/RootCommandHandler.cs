@@ -1,13 +1,15 @@
 namespace PcAgent.Tui.Commands;
 
-using Microsoft.Extensions.Logging;
-
 using PcAgent.Agent;
+using PcAgent.Tui.Rendering;
+using PcAgent.Tui.Repl;
 
 using Smart.CommandLine.Hosting;
 
-// ルートコマンド。引数なしで対話 REPL(フェーズ5)、--ask で単発質問をストリーミング表示する。
-public sealed class RootCommandHandler(IAgentConversation conversation, ILogger<RootCommandHandler> log) : ICommandHandler
+using Spectre.Console;
+
+// ルートコマンド。引数なしで対話 REPL、--ask で単発質問をストリーミング表示する。
+public sealed class RootCommandHandler(IAgentConversation conversation, ReplSession repl) : ICommandHandler
 {
     // 単発で投げる質問。
     [Option<string>("--ask", "-a", Description = "Ask a single question and exit")]
@@ -18,7 +20,7 @@ public sealed class RootCommandHandler(IAgentConversation conversation, ILogger<
         var ask = Ask;
         if (String.IsNullOrWhiteSpace(ask))
         {
-            log.LogInformation("Interactive REPL is not available yet (arrives in phase 5). Run with --help, or --ask \"<question>\".");
+            await repl.RunAsync(context.CancellationToken);
             return;
         }
 
@@ -30,24 +32,8 @@ public sealed class RootCommandHandler(IAgentConversation conversation, ILogger<
             return;
         }
 
-        await Console.Out.WriteLineAsync($"> you: {ask}");
-        await foreach (var agentEvent in conversation.SendAsync(ask, context.CancellationToken))
-        {
-            switch (agentEvent)
-            {
-                case ToolCallStarted started:
-                    await Console.Out.WriteLineAsync();
-                    await Console.Out.WriteLineAsync($"  [tool] {started.Name}({started.Arguments})");
-                    break;
-                case TextDelta delta:
-                    await Console.Out.WriteAsync(delta.Text);
-                    break;
-                case ResponseCompleted:
-                    await Console.Out.WriteLineAsync();
-                    break;
-                default:
-                    break;
-            }
-        }
+        var youLine = $"[bold green]> you[/]  [silver]{Markup.Escape(ask)}[/]";
+        AnsiConsole.MarkupLine(youLine);
+        await ConversationRenderer.StreamAsync(conversation, ask, context.CancellationToken);
     }
 }

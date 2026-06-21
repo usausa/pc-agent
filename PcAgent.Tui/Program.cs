@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging.Console;
 
 using PcAgent.Agent;
 using PcAgent.Diagnostics;
+using PcAgent.Tui;
 using PcAgent.Tui.Commands;
 using PcAgent.Tui.Filters;
 using PcAgent.Tui.Options;
@@ -29,6 +30,7 @@ builder.Services.Configure<ConsoleLoggerOptions>(static options => options.LogTo
 
 builder.Services.AddDiagnostics(builder.Configuration);
 builder.Services.AddPcAgent(builder.Configuration);
+builder.Services.AddTui();
 builder.Services.Configure<UiOptions>(builder.Configuration.GetSection(UiOptions.SectionName));
 
 builder.ConfigureCommands(static commands =>

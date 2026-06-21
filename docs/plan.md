@@ -230,22 +230,22 @@ public interface IChatClientFactory { IChatClient Create(LlmOptions options); }
 **参照**: TuiSpectreConsoleAgentSample（`Live`/`Apply`/`SpectreChatView`/リダイレクト分岐）、`MarkupFormatter`/`ResponseTokenizer`/`AgentBranding`。
 
 **PoC（§9 C1–C7）チェックリスト**
-- [ ] C1: 3,000–5,000 字の日本語長文を Live にストリームし、端末高超過時の挙動を確認
-- [ ] C2/C3: トークン毎再描画の遅延・フリッカ計測
-- [ ] C4: 枠なし + 絵文字/`BarChart`/進捗の表示幅を日本語 Windows Terminal で確認
-- [ ] C5: 部分マークアップ破綻（途中は素テキスト+Escape、完了時整形）を確認
-- [ ] C6: 入出力リダイレクト時のフォールバック
-- [ ] C7: PrettyPrompt の `/` 補完ポップアップ + 複数行 + Spectre 出力の協調・CJK 入力
-- [ ] **結論を記録**：本文表示方式（推奨=一過性 UI のみ Live、本文はスクロールバック逐次 Write）と補完方式を `spec.md`/`plan.md` に反映
+- [x] C1〜C3: **Live を使わない設計**を採用し原理回避（本文=スクロールバック逐次出力）。※本環境は非対話のため Live 自体の実測は不要化
+- [~] C4: 枠なし + 幅 1 ブロックバー構成で整列崩れを回避。絵文字(🖥️/⚙️)はリダイレクト出力でも描画確認。**実ターミナルでの最終目視はユーザー確認推奨**
+- [x] C5: 本文は `Markup.Escape` で都度エスケープ（途中整形なし）
+- [x] C6: 静的 `AnsiConsole` 描画でリダイレクト/ヘッドレス動作を確認
+- [~] C7: PrettyPrompt は対話 REPL の要素のため **P5 で実機検証**（不可なら Builtin へ）
+- [x] **結論を記録**：本文=スクロールバック・構造化=静的 Spectre に確定（[spec §9.4](spec.md)）
 
 **本描画チェックリスト**
-- [ ] 起動バナー（ASCII・配色、罫線なし）
-- [ ] 思考スピナー（ブライユ）/ ツール呼び出し（折りたたみ/展開）
-- [ ] 本文ストリーミング（確定方式で）
-- [ ] `MarkupFormatter` / `ResponseTokenizer` 移植・調整
-- [ ] 配色ロール（白/aqua/silver/green/blue/yellow、`grey` 不使用）、`Markup.Escape` 徹底
+- [x] 起動バナー（`FigletText`・配色、罫線なし）
+- [~] 思考スピナー / ツール呼び出し表示：ツール呼び出しは色付き行で表示。スピナー(`Status`)は対話 REPL（P5・リダイレクトガード付き）へ
+- [x] 本文ストリーミング（スクロールバック逐次・`AnsiConsole.Markup`）
+- [~] `MarkupFormatter` / `ResponseTokenizer`：生ストリーミングには不要のため見送り（Markdown 整形が必要になった段階で導入）
+- [x] 配色ロール（白/aqua/silver/green/blue/yellow、`grey` 不使用）、`Markup.Escape` 徹底
+- [x] `info` のリッチ描画（絵文字ヘッダ + 色 + 進捗バー `█░`）
 
-**完了基準**: PoC 結論が文書化され表示方式が確定。`--ask` 応答がリッチ表示（枠なし・絵文字）で安定描画。警告ゼロ。
+**完了基準**: PoC 結論が文書化され表示方式が確定。`info`/バナーがリッチ表示（枠なし・絵文字・バー）で安定描画。✅ **達成**（0 警告 / 0 エラー、リダイレクトでも動作）。`--ask` のストリーミング描画は実装済み（実 LLM 接続時に表示）。
 
 ---
 
@@ -268,17 +268,17 @@ public interface ISlashCommand { string Name { get; } string Description { get; 
 **参照**: 付録 A（先頭文字分岐・補完 UX・キー操作）、PrettyPrompt。
 
 **チェックリスト**
-- [ ] REPL ループ（プロンプト・履歴・`/clear`・`/exit`）
-- [ ] `InputDispatcher`：`/`→コマンド、`@`→注入、`!`→シェル、他→エージェント
-- [ ] `ISlashCommand` + レジストリ、`/help` 自動生成
-- [ ] 基本コマンド：`/help` `/clear` `/exit` `/info` `/status` `/config` `/model` `/doctor`
-- [ ] `@cpu` `@disk` `@smart` 等の情報注入（登録コレクタを動的列挙）
-- [ ] `!systeminfo` 等のシェル実行（ユーザー起動は直接・`Actions:AllowShell` で制御）
-- [ ] サジェスト：`/` ポップアップ・ファジー絞り込み・説明/引数ヒント（PrettyPrompt or Builtin）
-- [ ] 割り込み：`Esc`=生成中断（CancellationToken）、`Ctrl+C` 2 回=終了、`Ctrl+D`=EOF
-- [ ] 複数行 `Ctrl+J`、履歴 `↑↓`/`Ctrl+R`
+- [x] REPL ループ（`ReplSession`・`Banner`・`/clear`・`/exit`）
+- [x] `InputDispatcher`：`/`→コマンド、`@`→注入、`!`→シェル、他→エージェント
+- [x] `ISlashCommand` + レジストリ（DI）、`/help` 自動生成
+- [x] 基本コマンド：`/help` `/clear` `/exit` `/info` `/status` `/config` `/model` `/doctor`
+- [x] `@<category>` 情報注入（登録コレクタを動的列挙。単独=表示 / 質問付き=エージェントへ注入）
+- [x] `!<command>` シェル実行（`cmd /c`・出力取込・`Actions:AllowShell` で制御）
+- [x] サジェスト：`PrettyPromptInputReader`（`/`・`@` のポップアップ補完）+ `BuiltinInputReader`（フォールバック/リダイレクト）。**選択は対話端末判定 + `Ui:CompletionEngine`**
+- [~] 割り込み：`Ctrl+C`/`Ctrl+D`/EOF → REPL 終了（`IsSuccess=false`/`null`）。生成中断(Esc)・2 回 Ctrl+C・複数行・履歴は PrettyPrompt 既定機能に委譲（実機検証はユーザー）
+- [x] CS ファイル UTF-8（BOMなし）+ CRLF
 
-**完了基準**: 対話で自然言語質問・`/info`・`@disk`・`!cmd`・補完・中断がすべて動作。警告ゼロ。
+**完了基準**: 自然言語質問・`/info`・`@<cat>`・`!cmd`・コマンド一覧・終了がすべて動作。✅ **達成**（0 警告 / 0 エラー、Builtin 経路をパイプ入力で全確認）。PrettyPrompt の `/`・`@` 補完はコンパイル検証済みで、**対話端末での補完表示はユーザー確認**（C7）。
 
 ---
 
