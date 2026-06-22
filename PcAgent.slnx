@@ -17,4 +17,5 @@
   <Project Path="PcAgent.Agent/PcAgent.Agent.csproj" />
   <Project Path="PcAgent.Tui/PcAgent.Tui.csproj" />
   <Project Path="AppHost/AppHost.csproj" />
+  <Project Path="PcAgent.Evaluation/PcAgent.Evaluation.csproj" />
 </Solution>
