@@ -35,8 +35,8 @@ Microsoft Agent Framework（`Microsoft.Agents.AI` 1.10.0）の機能カタログ
 | | 履歴の圧縮 (Compaction) | ✅ | `CompactionProvider` + `SlidingWindowCompactionStrategy`（`Compaction:MessagesThreshold`、実験的 `MAAI001` を局所抑制） |
 | ⚙️ ミドルウェア | ミドルウェア + ロギング | ✅ | `AsBuilder().Use(...)`（実行 5 引数 / ツール 4 引数）+ `LoggerMessage` 計測 |
 | 📊 可観測性・評価 | テレメトリ (OpenTelemetry) | ✅ | `UseOpenTelemetry` + OTel `TracerProvider`/OTLP（既定オフ） |
-| | メトリクス | 🔜 | `MeterProvider`（plan.md §3） |
-| | 評価（ローカル検査） | 🔜 | `LocalEvaluator`（plan.md §4） |
+| | メトリクス | 🔜 | `MeterProvider`（plan.md §1） |
+| | 評価（ローカル検査） | 🔜 | `LocalEvaluator`（plan.md §2） |
 | 🔌 相互運用・プロバイダー | マルチプロバイダー | ✅ | Foundry=`AzureOpenAIClient` / Ollama・FoundryLocal=`OpenAIClient` を共通 `AIAgent` に |
 | | DI 連携 | ✅ | `AddPcAgent`（`Microsoft.Extensions.DependencyInjection`） |
 
@@ -120,7 +120,7 @@ dotnet run --project PcAgent.Tui
 | `Rag` | `Enabled` / `KnowledgePath` | ナレッジ注入 |
 | `Compaction` | `Enabled` / `MessagesThreshold` / `KeepRecentTurns` | 会話履歴の自動圧縮（閾値・残すターン数） |
 | `Actions` | `Enabled` / `RequireApproval` / `AllowShell` / `Shell:AllowedCommands` | 修復アクション・LLM シェルの可否と許可コマンド |
-| `Telemetry` | `EnableSensitiveData` / `Otlp:Enabled` / `Otlp:Endpoint` | OTLP 送信（既定オフ） |
+| `Telemetry` | `EnableSensitiveData` / `Otlp:Enabled` / `Otlp:Endpoint` / `Otlp:Protocol` | OTLP 送信（既定オフ・`Grpc`/`HttpProtobuf`） |
 | `Customization` | `CommandsPaths` | カスタムコマンドの探索パス |
 
 > 🛡️ **LLM シェルツール**: `Actions:AllowShell=true` のときのみ登録され、`Shell:AllowedCommands` にある許可コマンド（先頭語一致）かつ**承認後**にのみ実行されます。パイプ/リダイレクト等の演算子（`& | > ^` 等）は拒否。ユーザー起動の `!` シェルとは別系統です。
@@ -134,14 +134,31 @@ dotnet user-secrets --project PcAgent.Tui set "Llm:ApiKey" "<key>"
 
 ### 📊 可観測性(OpenTelemetry)
 
-`Telemetry:Otlp:Enabled=true` で OTLP エクスポートを有効化（既定オフ）。送信先は `Telemetry:Otlp:Endpoint`（既定 `http://localhost:4317`）。OpenTelemetry Collector / Aspire Dashboard で受信する。無効時は処理時間のローカルログのみ。
+`Telemetry:Otlp:Enabled=true` で OTLP エクスポートを有効化（既定オフ）。送信先は `Telemetry:Otlp:Endpoint`（既定 `http://localhost:4317`）、プロトコルは `Telemetry:Otlp:Protocol`（`Grpc`=4317 / `HttpProtobuf`=4318）。標準の `OTEL_EXPORTER_OTLP_ENDPOINT` 環境変数があればそれを優先（Aspire 連携）。無効時は処理時間のローカルログのみ。トレース源は `PcAgent.Diagnostics`（`diagnostics.snapshot`）と `PcAgent.Agent`（エージェント/ツール）。
 
-ローカルで可視化する例（Aspire Dashboard）:
+#### Aspire ダッシュボードで受信確認
+
+`AppHost`（Aspire）は**特定アプリに依存しない単体 OTLP 受信ダッシュボード**。OTLP 受信は **4317(gRPC) / 4318(HTTP) に固定**済みで、PcAgent の既定エンドポイントと一致する。AppHost を先に起動し、PcAgent を別ターミナルで OTLP 有効にして実行する。
+
+**① AppHost を単体起動**（起動したまま。OTLP 4317/4318 で待受。ダッシュボード URL は起動ログに表示）:
 
 ```pwsh
-docker run --rm -p 18888:18888 -p 4317:18889 mcr.microsoft.com/dotnet/aspire-dashboard:latest
-$env:Telemetry__Otlp__Enabled='true'; dotnet run --project PcAgent.Tui -- diagnose
+dotnet run --project AppHost
 ```
+
+**② 別ターミナルで PcAgent を OTLP 有効にして実行**（送信先は既定 4317 でダッシュボードと一致するため、有効化のみ）:
+
+```pwsh
+$env:Telemetry__Otlp__Enabled = 'true'
+dotnet run --project PcAgent.Tui -- diagnose        # 単発診断（LLM 不要）
+# 対話/エージェントのトレースも見る場合: dotnet run --project PcAgent.Tui
+```
+
+設定は環境変数（上記 `Telemetry__Otlp__Enabled`）でも `appsettings.json` の `Telemetry:Otlp:Enabled=true` でも可。送信先/プロトコルは `Telemetry:Otlp:Endpoint`（既定 `http://localhost:4317`）/ `Telemetry:Otlp:Protocol`（既定 `Grpc`）。
+
+**③** ①の起動ログに出るダッシュボード（ログイン）URL を開き、**Traces** で `diagnostics.snapshot`（対話時は `PcAgent.Agent`）スパンを確認する。
+
+> Docker 不要（Aspire ダッシュボードはプロセスとして起動）。Docker がある場合はスタンドアロンの `mcr.microsoft.com/dotnet/aspire-dashboard` コンテナでも同様に受信できる。
 
 ## 🧩 カスタムコマンド
 
@@ -192,5 +209,6 @@ dotnet publish PcAgent.Tui -p:PublishProfile=win-x64
 | `PcAgent.Diagnostics` | 情報収集(Collectors)・診断ルールエンジン・修復サービス |
 | `PcAgent.Agent` | エージェント配線(ツール/RAG/承認/計測)・LLM 抽象 |
 | `PcAgent.Tui` | CLI / REPL / 描画(Spectre)・カスタムコマンド |
+| `AppHost` | Aspire AppHost（OTLP をダッシュボードで可視化・任意） |
 
 詳細仕様は [`docs/spec.md`](docs/spec.md)、残作業（優先度つき）は [`docs/plan.md`](docs/plan.md) を参照。

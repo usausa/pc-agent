@@ -25,14 +25,32 @@ public sealed class AgentTelemetry : IDisposable
         var telemetry = options.Value;
         EnableSensitiveData = telemetry.EnableSensitiveData;
 
-        if (telemetry.Otlp.Enabled)
+        // Aspire/標準の OTEL 環境変数(OTEL_EXPORTER_OTLP_ENDPOINT)があれば OTLP を有効化し、その向き先を使う。
+        var envEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+        var envWired = !String.IsNullOrEmpty(envEndpoint);
+
+        if (telemetry.Otlp.Enabled || envWired)
         {
-            tracerProvider = Sdk.CreateTracerProviderBuilder()
+            var tracing = Sdk.CreateTracerProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("PcAgent"))
                 .AddSource(SourceName)
-                .AddSource(DiagnosticsTelemetry.SourceName)
-                .AddOtlpExporter(exporter => exporter.Endpoint = new Uri(telemetry.Otlp.Endpoint))
-                .Build();
+                .AddSource(DiagnosticsTelemetry.SourceName);
+
+            if (envWired)
+            {
+                // エンドポイント/プロトコル/ヘッダは OTEL_EXPORTER_OTLP_* から自動取得(Aspire 連携)。
+                tracing.AddOtlpExporter();
+            }
+            else
+            {
+                tracing.AddOtlpExporter(exporter =>
+                {
+                    exporter.Endpoint = new Uri(telemetry.Otlp.Endpoint);
+                    exporter.Protocol = telemetry.Otlp.Protocol;
+                });
+            }
+
+            tracerProvider = tracing.Build();
         }
     }
 
@@ -41,6 +59,9 @@ public sealed class AgentTelemetry : IDisposable
 
     // OTLP 送信が有効か。
     public bool OtlpEnabled => tracerProvider is not null;
+
+    // 保留中のスパンを同期的に送信する(短命な CLI 実行でも確実にエクスポートするため)。
+    public void Flush() => _ = tracerProvider?.ForceFlush(5000);
 
     public void Dispose() => tracerProvider?.Dispose();
 }

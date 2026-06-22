@@ -13,6 +13,7 @@
 - **LLM シェルツール**: 承認(HITL) + 許可リスト(`Actions:Shell:AllowedCommands`) + シェル演算子拒否で制限（実機検証済み）。
 - **会話メモリ / 圧縮**: セッション永続化（ターン間記憶）+ 履歴圧縮（`CompactionProvider`、`Compaction:MessagesThreshold` で閾値設定）+ `/compact`（手動クリア）。実機検証済み。
 - **TUI / REPL**: `/ @ !` ディスパッチ、補完、カスタムコマンド（Markdown）、終了サマリ、簡易マークダウン整形。
+- **可観測性(OTLP) / Aspire**: OTLP を全コマンドで有効化（設定 / 標準 OTEL 環境変数の両対応・`Otlp:Protocol`）。ローカル受信を実機確認（`/v1/traces` 受信）。`AppHost`（Aspire）でダッシュボード可視化。
 - **配布**: 自己完結・単一ファイル（Trimming なし）発行。
 - **実機検証済み**: 情報取得・診断・REPL・カスタムコマンド・`/clean`（承認ゲート）・OTLP 初期化・単一 exe、および LLM 依存経路（対話 / ツール / RAG / HITL 承認 / 層 2 ログ）。
 
@@ -27,21 +28,12 @@
 
 | 優先度 | 項目 | 種別 | 使用予定 AF 機能 | 目安工数 |
 | --- | --- | --- | --- | --- |
-| ★★ | 2. OTLP コレクタ受信確認 | 動作確認 | — | 小 |
-| ★★ | 3. メトリクス | 任意 | 🔜 `MeterProvider`（テレメトリ） | 中 |
-| ★★ | 4. 評価 | 任意 | 🔜 `LocalEvaluator` | 中 |
-| ★ | 5. Aspire AppHost | 任意 | —（インフラ） | 小〜中 |
+| ★★ | 1. メトリクス | 任意 | 🔜 `MeterProvider`（テレメトリ） | 中 |
+| ★★ | 2. 評価 | 任意 | 🔜 `LocalEvaluator` | 中 |
 
 ---
 
-### 📡 2. OTLP コレクタ受信確認 ★★（動作確認・低工数）
-
-- **優先度の理由**: 低工数で **P9（可観測性）を締める**動作確認。コード変更はほぼ不要。
-- **背景**: P9 で初期化・送信試行・Exit 0 までは確認済み。**ダッシュボードでの可視受信は未実施**（コレクタ起動が必要）。
-- **作業内容 / 確認方法**:
-  - Aspire Dashboard / OTel Collector を起動（[`README.md`](../README.md) 手順）→ `Telemetry:Otlp:Enabled=true` で `diagnose` / 対話を実行 → `PcAgent.Diagnostics`（`diagnostics.snapshot`）/ `PcAgent.Agent` のスパンがダッシュボードに出ることを確認。
-
-### 📈 3. メトリクス（MeterProvider + カスタムメトリクス）★★（任意）
+### 📈 1. メトリクス（MeterProvider + カスタムメトリクス）★★（任意）
 
 - **🔜 使用予定の AF 機能**: テレメトリのメトリクス面（`MeterProvider`）。トレースは実装済み・メトリクスは未実装。
 - **優先度の理由**: トレースは実装済みのため**付加価値**。運用で数値を見たい場合に効く。
@@ -53,7 +45,7 @@
   - ビルド 0/0。
   - OTLP 有効 + `diagnose` 実行 → コレクタ/ダッシュボードでカウンタ・ヒストグラムが確認できる。
 
-### 🧪 4. 評価（LocalEvaluator）★★（任意）
+### 🧪 2. 評価（LocalEvaluator）★★（任意）
 
 - **🔜 使用予定の AF 機能**: **評価（ローカル検査）** `LocalEvaluator` / `EvalChecks`（追加 NuGet 不要）。
 - **優先度の理由**: 製品化・回帰防止（CI）の観点で有用。個人ツール用途なら後回し可。
@@ -63,16 +55,6 @@
   3. CI に組み込む。
 - **確認方法**:
   - 評価実行 → スコア/レポート出力。閾値で pass/fail を判定。
-
-### 🧭 5. Aspire AppHost ★（任意）
-
-- **優先度の理由**: PcAgent は**対話 TUI** のため AppHost からの常駐起動は不自然。**スタンドアロンのダッシュボードで代替可能**なため価値は低い。
-- **背景**: OTLP の受信・可視化用。アプリ本体は **Aspire 非依存**（`ServiceDefaults` は作らない方針）。
-- **作業内容**:
-  1. 最小構成: **スタンドアロン Aspire Dashboard コンテナ**で受信（[`README.md`](../README.md) に手順あり）。
-  2. AppHost を作る場合: Aspire AppHost プロジェクトを追加しダッシュボードを起動（実質は OTLP シンク用途）。
-- **確認方法**:
-  - ダッシュボード起動 → OTLP 有効の PcAgent からトレース（/メトリクス）が到達する。
 
 ---
 

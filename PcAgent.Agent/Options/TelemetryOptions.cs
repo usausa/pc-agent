@@ -1,5 +1,7 @@
 namespace PcAgent.Agent.Options;
 
+using OpenTelemetry.Exporter;
+
 // OTLP エクスポートに関する設定。
 public sealed class OtlpOptions
 {
@@ -8,6 +10,9 @@ public sealed class OtlpOptions
 
     // 送信先エンドポイント。
     public string Endpoint { get; set; } = "http://localhost:4317";
+
+    // 送信プロトコル(Grpc=4317 / HttpProtobuf=4318)。
+    public OtlpExportProtocol Protocol { get; set; } = OtlpExportProtocol.Grpc;
 }
 
 // 可観測性(テレメトリ)に関する設定。

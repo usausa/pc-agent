@@ -48,4 +48,13 @@ builder.ConfigureCommands(static commands =>
 });
 
 var host = builder.Build();
-return await host.RunAsync();
+
+// OTLP を全コマンド(diagnose 等)で有効化するため、テレメトリ初期化を起動時に確実に行う。
+var telemetry = host.Services.GetRequiredService<AgentTelemetry>();
+
+var exitCode = await host.RunAsync();
+
+// 短命な CLI 実行でも保留中のスパンを確実に送信する。
+telemetry.Flush();
+
+return exitCode;
