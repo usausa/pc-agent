@@ -26,6 +26,7 @@ public static class DiagnosticsServiceCollectionExtensions
         services.AddSingleton<ICollector, MotherboardCollector>();
         services.AddSingleton<ICollector, DiskCollector>();
         services.AddSingleton<ICollector, NetworkCollector>();
+        services.AddSingleton<ICollector, WifiCollector>();
         services.AddSingleton<ICollector, BatteryCollector>();
         services.AddSingleton<ICollector, SmartCollector>();
         services.AddSingleton<ICollector, SystemCollector>();

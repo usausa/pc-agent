@@ -13,7 +13,7 @@ using Smart.CommandLine.Hosting;
 public sealed class InfoCommand(IEnumerable<ICollector> collectors) : ICommandHandler
 {
     // 情報カテゴリ。
-    [Option<string>("--category", "-c", Description = "Category: cpu, gpu, memory, motherboard, disk, network, battery, smart, system, all")]
+    [Option<string>("--category", "-c", Description = "Category: cpu, gpu, memory, motherboard, disk, network, wifi, battery, smart, system, all")]
     public string? Category { get; set; }
 
     // JSON で出力するか。
