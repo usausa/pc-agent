@@ -91,6 +91,8 @@ internal static class InfoRenderer
         "battery" => ":battery:",
         "smart" => ":stethoscope:",
         "system" => ":desktop_computer:",
+        "wifi" => ":satellite_antenna:",
+        "eventlog" => ":scroll:",
         _ => ":small_blue_diamond:",
     };
 }

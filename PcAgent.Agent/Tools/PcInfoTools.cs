@@ -9,7 +9,7 @@ public sealed class PcInfoTools(IEnumerable<ICollector> collectors)
 {
     [Description("指定カテゴリのPC情報(センサー値/SMART/システム情報)を取得します。")]
     public async Task<string> GetPcInfo(
-        [Description("情報カテゴリ。cpu, gpu, memory, motherboard, disk, network, wifi, battery, smart, system のいずれか。")] string category)
+        [Description("情報カテゴリ。cpu, gpu, memory, motherboard, disk, network, wifi, battery, smart, system, eventlog のいずれか。")] string category)
     {
         var collector = collectors.FirstOrDefault(c => String.Equals(c.Name, category, StringComparison.OrdinalIgnoreCase));
         if (collector is null)

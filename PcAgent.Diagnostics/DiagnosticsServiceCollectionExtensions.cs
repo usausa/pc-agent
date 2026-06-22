@@ -30,6 +30,7 @@ public static class DiagnosticsServiceCollectionExtensions
         services.AddSingleton<ICollector, BatteryCollector>();
         services.AddSingleton<ICollector, SmartCollector>();
         services.AddSingleton<ICollector, SystemCollector>();
+        services.AddSingleton<ICollector, EventLogCollector>();
 
         services.AddSingleton<SnapshotBuilder>();
         services.AddSingleton<RuleEngine>();
