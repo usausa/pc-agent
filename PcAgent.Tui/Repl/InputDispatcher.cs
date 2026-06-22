@@ -10,7 +10,8 @@ using Spectre.Console;
 public sealed class InputDispatcher(
     IAgentConversation conversation,
     IEnumerable<ICollector> collectors,
-    ShellRunner shell)
+    ShellRunner shell,
+    LastResponseStore lastResponse)
 {
     public async Task DispatchAsync(string line, SlashCommandContext context, CancellationToken cancellationToken)
     {
@@ -71,7 +72,7 @@ public sealed class InputDispatcher(
         }
 
         var message = question + "\n\n[参考情報: " + collector.DisplayName + "]\n" + CollectorText.ToText(result);
-        await ConversationRenderer.StreamAsync(conversation, message, cancellationToken);
+        lastResponse.Text = await ConversationRenderer.StreamAsync(conversation, message, cancellationToken);
     }
 
     private async ValueTask DispatchAgentAsync(string line, CancellationToken cancellationToken)
@@ -82,7 +83,7 @@ public sealed class InputDispatcher(
             return;
         }
 
-        await ConversationRenderer.StreamAsync(conversation, line, cancellationToken);
+        lastResponse.Text = await ConversationRenderer.StreamAsync(conversation, line, cancellationToken);
     }
 
     private static (string Name, string Remainder) SplitHead(string text)

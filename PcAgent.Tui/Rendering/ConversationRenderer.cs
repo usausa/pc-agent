@@ -15,10 +15,11 @@ internal static partial class ConversationRenderer
     // ツール名・コマンド/インラインコード相当の淡い色。
     private const string CommandColor = "#b1b9f9";
 
-    public static async Task StreamAsync(IAgentConversation conversation, string message, CancellationToken cancellationToken)
+    public static async Task<string> StreamAsync(IAgentConversation conversation, string message, CancellationToken cancellationToken)
     {
         var agentShown = false;
         var buffer = new StringBuilder();
+        var full = new StringBuilder();
 
         await foreach (var agentEvent in conversation.SendAsync(message, cancellationToken))
         {
@@ -45,6 +46,7 @@ internal static partial class ConversationRenderer
                     }
 
                     buffer.Append(delta.Text);
+                    full.Append(delta.Text);
                     FlushCompleteLines(buffer);
                     break;
 
@@ -63,6 +65,8 @@ internal static partial class ConversationRenderer
                     break;
             }
         }
+
+        return full.ToString();
     }
 
     // 改行で完結した行を整形して出力し、末尾の未完行はバッファに残す。

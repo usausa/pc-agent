@@ -26,9 +26,13 @@ public static class TuiServiceCollectionExtensions
         services.AddSingleton<ISlashCommand, RulesCommand>();
         services.AddSingleton<ISlashCommand, ActionsCommand>();
         services.AddSingleton<ISlashCommand, CleanCommand>();
+        services.AddSingleton<ISlashCommand, WatchCommand>();
+        services.AddSingleton<ISlashCommand, CopyCommand>();
+        services.AddSingleton<ISlashCommand, SaveCommand>();
 
         services.AddSingleton<IToolApprovalHandler, ConsoleApprovalHandler>();
 
+        services.AddSingleton<LastResponseStore>();
         services.AddSingleton<ShellRunner>();
         services.AddSingleton<CustomCommandLoader>();
         services.AddSingleton<InputDispatcher>();
