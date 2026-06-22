@@ -10,6 +10,7 @@
 
 - **情報取得 / 診断**: Collectors（HW/SMART/System）、外部 JSON ルール/閾値エンジン、ダッシュボード表示。
 - **エージェント**: ストリーミング対話、関数ツール、RAG/コンテキスト注入、HITL 承認、2 層処理時間ログ、OpenTelemetry/OTLP（既定オフ）。
+- **LLM シェルツール**: 承認(HITL) + 許可リスト(`Actions:Shell:AllowedCommands`) + シェル演算子拒否で制限（実機検証済み）。
 - **TUI / REPL**: `/ @ !` ディスパッチ、補完、カスタムコマンド（Markdown）、終了サマリ、簡易マークダウン整形。
 - **配布**: 自己完結・単一ファイル（Trimming なし）発行。
 - **実機検証済み**: 情報取得・診断・REPL・カスタムコマンド・`/clean`（承認ゲート）・OTLP 初期化・単一 exe、および LLM 依存経路（対話 / ツール / RAG / HITL 承認 / 層 2 ログ）。
@@ -25,7 +26,6 @@
 
 | 優先度 | 項目 | 種別 | 使用予定 AF 機能 | 目安工数 |
 | --- | --- | --- | --- | --- |
-| ★★★ | 1. LLM シェルツールの要否決定 | 要判断 | （`ApprovalRequiredAIFunction` を流用） | 判断＋小〜中 |
 | ★★ | 2. OTLP コレクタ受信確認 | 動作確認 | — | 小 |
 | ★★ | 3. メトリクス | 任意 | 🔜 `MeterProvider`（テレメトリ） | 中 |
 | ★★ | 4. 評価 | 任意 | 🔜 `LocalEvaluator` | 中 |
@@ -33,22 +33,6 @@
 | ★ | 6. Aspire AppHost | 任意 | —（インフラ） | 小〜中 |
 
 ---
-
-### 🔐 1. LLM シェルツールの要否決定 ★★★（要判断）
-
-- **優先度の理由**: 唯一の「要判断」項目。実装すれば機能価値は高いが、**任意コマンド実行はセキュリティ影響が大きく**、安全策の設計が前提になる。
-- **関連 AF 機能**: 既存の **ツール承認 (HITL)**（`ApprovalRequiredAIFunction`）を流用（新規機能ではなくツール追加）。
-- **背景**: 現状シェルは `!`（ユーザー起動・`ShellRunner`）のみ。LLM が任意コマンドを起動するツールは**未実装**（保留中）。承認基盤（`ApprovalRequiredAIFunction` + `IToolApprovalHandler`）は流用可能。
-- **判断ポイント**: LLM に任意コマンド実行を許すか。許す場合の安全策（許可リスト方式 / 常に承認必須 / `Actions:AllowShell` 連動 / 出力サイズ制限）。
-- **作業内容（実装する場合）**:
-  1. シェル実行を `PcAgent.Agent` から使える形に抽象化（現 `ShellRunner` は `PcAgent.Tui` 依存）。例: `IShellExecutor` を下位層に定義し Tui で実装、または `PcAgent.Diagnostics` に純粋な実行関数を置く。
-  2. `MaintenanceTools` と同様に `RunShellCommand(string command)` ツールを作り `ApprovalRequiredAIFunction` でラップ。
-  3. `PcAgentConversation` の `Tools` に追加。`Actions:AllowShell=false` 時は登録しない（または拒否を返す）。
-  4. 既存の承認ループ（`ToolApprovalRequestContent` → `IToolApprovalHandler` → `CreateResponse`）でゲートする。
-- **確認方法**:
-  - ビルド 0 警告 / 0 エラー。
-  - 「`ipconfig` を実行して」等 → 承認プロンプト → `y` で実行され出力がエージェントに渡る / `n` で未実行。
-  - `Actions:AllowShell=false` でツールが使えない（または拒否される）こと。
 
 ### 📡 2. OTLP コレクタ受信確認 ★★（動作確認・低工数）
 

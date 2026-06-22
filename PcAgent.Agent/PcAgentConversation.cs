@@ -14,6 +14,7 @@ using OpenAI.Chat;
 using PcAgent.Agent.Options;
 using PcAgent.Agent.Rag;
 using PcAgent.Agent.Tools;
+using PcAgent.Diagnostics.Options;
 
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
@@ -28,6 +29,8 @@ public sealed partial class PcAgentConversation : IAgentConversation
         IOptions<LlmOptions> options,
         IOptions<RagOptions> ragOptions,
         PcInfoTools tools,
+        IOptions<ActionsOptions> actionsOptions,
+        ShellTools shellTools,
         IToolApprovalHandler handler,
         AgentTelemetry telemetry,
         ILogger<PcAgentConversation> logger)
@@ -35,6 +38,8 @@ public sealed partial class PcAgentConversation : IAgentConversation
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(ragOptions);
         ArgumentNullException.ThrowIfNull(tools);
+        ArgumentNullException.ThrowIfNull(actionsOptions);
+        ArgumentNullException.ThrowIfNull(shellTools);
         ArgumentNullException.ThrowIfNull(telemetry);
 
         approvalHandler = handler;
@@ -57,24 +62,39 @@ public sealed partial class PcAgentConversation : IAgentConversation
             providers.Add(BuildRagProvider(new KnowledgeStore(Resolve(rag.KnowledgePath))));
         }
 
+        var actions = actionsOptions.Value;
+
+        var instructions =
+            "あなたはこの Windows PC の状態を調べ、必要に応じて修復するアシスタントです。" +
+            "情報の質問には必ずツールで実際の値を取得し、簡潔に日本語でまとめて答えてください。" +
+            "ナレッジ(参考情報)が提供された場合はそれを根拠として活用し、可能なら出典(SourceName)を示してください。" +
+            "一時ファイル削除や bin/obj 削除などの修復は、承認が必要なツールとして用意されています。" +
+            "値や根拠が得られない場合は推測せず『不明』と答えてください。";
+
+        var toolList = new List<AITool>
+        {
+            AIFunctionFactory.Create(tools.GetPcInfo),
+            AIFunctionFactory.Create(tools.ListCategories),
+            new ApprovalRequiredAIFunction(AIFunctionFactory.Create(MaintenanceTools.CleanTemporaryFiles)),
+            new ApprovalRequiredAIFunction(AIFunctionFactory.Create(MaintenanceTools.CleanBinObj)),
+        };
+
+        if (actions.AllowShell && actions.Shell.AllowedCommands.Count > 0)
+        {
+            toolList.Add(new ApprovalRequiredAIFunction(AIFunctionFactory.Create(shellTools.RunShellCommand)));
+            instructions +=
+                "シェルコマンドは承認制で、次のコマンドのみ実行できます: " +
+                String.Join(", ", actions.Shell.AllowedCommands) +
+                "。これら以外や、パイプ/リダイレクト(& | > 等)は実行できません。";
+        }
+
         var agentOptions = new ChatClientAgentOptions
         {
             Name = AgentName,
             ChatOptions = new ChatOptions
             {
-                Instructions =
-                    "あなたはこの Windows PC の状態を調べ、必要に応じて修復するアシスタントです。" +
-                    "情報の質問には必ずツールで実際の値を取得し、簡潔に日本語でまとめて答えてください。" +
-                    "ナレッジ(参考情報)が提供された場合はそれを根拠として活用し、可能なら出典(SourceName)を示してください。" +
-                    "一時ファイル削除や bin/obj 削除などの修復は、承認が必要なツールとして用意されています。" +
-                    "値や根拠が得られない場合は推測せず『不明』と答えてください。",
-                Tools =
-                [
-                    AIFunctionFactory.Create(tools.GetPcInfo),
-                    AIFunctionFactory.Create(tools.ListCategories),
-                    new ApprovalRequiredAIFunction(AIFunctionFactory.Create(MaintenanceTools.CleanTemporaryFiles)),
-                    new ApprovalRequiredAIFunction(AIFunctionFactory.Create(MaintenanceTools.CleanBinObj)),
-                ],
+                Instructions = instructions,
+                Tools = toolList,
             },
             AIContextProviders = providers,
         };
