@@ -3,6 +3,7 @@ namespace PcAgent.Agent;
 using Microsoft.Extensions.Options;
 
 using OpenTelemetry;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -17,6 +18,8 @@ public sealed class AgentTelemetry : IDisposable
     public const string SourceName = "PcAgent.Agent";
 
     private readonly TracerProvider? tracerProvider;
+
+    private readonly MeterProvider? meterProvider;
 
     public AgentTelemetry(IOptions<TelemetryOptions> options)
     {
@@ -51,6 +54,25 @@ public sealed class AgentTelemetry : IDisposable
             }
 
             tracerProvider = tracing.Build();
+
+            var metering = Sdk.CreateMeterProviderBuilder()
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("PcAgent"))
+                .AddMeter(DiagnosticsMetrics.MeterName);
+
+            if (envWired)
+            {
+                metering.AddOtlpExporter();
+            }
+            else
+            {
+                metering.AddOtlpExporter(exporter =>
+                {
+                    exporter.Endpoint = new Uri(telemetry.Otlp.Endpoint);
+                    exporter.Protocol = telemetry.Otlp.Protocol;
+                });
+            }
+
+            meterProvider = metering.Build();
         }
     }
 
@@ -60,8 +82,16 @@ public sealed class AgentTelemetry : IDisposable
     // OTLP 送信が有効か。
     public bool OtlpEnabled => tracerProvider is not null;
 
-    // 保留中のスパンを同期的に送信する(短命な CLI 実行でも確実にエクスポートするため)。
-    public void Flush() => _ = tracerProvider?.ForceFlush(5000);
+    // 保留中のスパン/メトリクスを同期的に送信する(短命な CLI 実行でも確実にエクスポートするため)。
+    public void Flush()
+    {
+        _ = tracerProvider?.ForceFlush(5000);
+        _ = meterProvider?.ForceFlush(5000);
+    }
 
-    public void Dispose() => tracerProvider?.Dispose();
+    public void Dispose()
+    {
+        tracerProvider?.Dispose();
+        meterProvider?.Dispose();
+    }
 }

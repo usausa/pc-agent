@@ -1,5 +1,7 @@
 namespace PcAgent.Diagnostics;
 
+using System.Diagnostics;
+
 using PcAgent.Diagnostics.Collectors;
 using PcAgent.Diagnostics.Models;
 
@@ -9,15 +11,18 @@ public sealed class SnapshotBuilder(IEnumerable<ICollector> collectors)
     public async Task<DiagnosticsSnapshot> BuildAsync(CancellationToken cancellationToken)
     {
         using var activity = DiagnosticsTelemetry.Source.StartActivity("diagnostics.snapshot");
+        var stopwatch = Stopwatch.StartNew();
 
         var metrics = new List<SnapshotMetric>();
         foreach (var collector in collectors)
         {
             var result = await collector.CollectAsync(cancellationToken).ConfigureAwait(false);
+            DiagnosticsMetrics.Collections.Add(1);
             Extract(collector.Name, result, metrics);
         }
 
         activity?.SetTag("metric.count", metrics.Count);
+        DiagnosticsMetrics.SnapshotDuration.Record(stopwatch.Elapsed.TotalMilliseconds);
         return new DiagnosticsSnapshot(metrics, DateTimeOffset.Now);
     }
 

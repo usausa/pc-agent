@@ -10,6 +10,14 @@ internal static class DiagnosisExecutor
     public static async Task<DiagnosisReport> RunAsync(SnapshotBuilder builder, RuleEngine engine, CancellationToken cancellationToken)
     {
         var snapshot = await builder.BuildAsync(cancellationToken);
-        return engine.Evaluate(snapshot);
+        var report = engine.Evaluate(snapshot);
+
+        DiagnosticsMetrics.Diagnoses.Add(1);
+        foreach (var finding in report.Findings)
+        {
+            DiagnosticsMetrics.Findings.Add(1, new KeyValuePair<string, object?>("severity", finding.Severity.ToString()));
+        }
+
+        return report;
     }
 }

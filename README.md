@@ -35,8 +35,8 @@ Microsoft Agent Framework（`Microsoft.Agents.AI` 1.10.0）の機能カタログ
 | | 履歴の圧縮 (Compaction) | ✅ | `CompactionProvider` + `SlidingWindowCompactionStrategy`（`Compaction:MessagesThreshold`、実験的 `MAAI001` を局所抑制） |
 | ⚙️ ミドルウェア | ミドルウェア + ロギング | ✅ | `AsBuilder().Use(...)`（実行 5 引数 / ツール 4 引数）+ `LoggerMessage` 計測 |
 | 📊 可観測性・評価 | テレメトリ (OpenTelemetry) | ✅ | `UseOpenTelemetry` + OTel `TracerProvider`/OTLP（既定オフ） |
-| | メトリクス | 🔜 | `MeterProvider`（plan.md §1） |
-| | 評価（ローカル検査） | 🔜 | `LocalEvaluator`（plan.md §2） |
+| | メトリクス | ✅ | `MeterProvider`（`DiagnosticsMetrics`: 診断/指摘(重大度別)/収集/時間） |
+| | 評価（ローカル検査） | 🔜 | `LocalEvaluator`（plan.md §1） |
 | 🔌 相互運用・プロバイダー | マルチプロバイダー | ✅ | Foundry=`AzureOpenAIClient` / Ollama・FoundryLocal=`OpenAIClient` を共通 `AIAgent` に |
 | | DI 連携 | ✅ | `AddPcAgent`（`Microsoft.Extensions.DependencyInjection`） |
 
@@ -134,7 +134,7 @@ dotnet user-secrets --project PcAgent.Tui set "Llm:ApiKey" "<key>"
 
 ### 📊 可観測性(OpenTelemetry)
 
-`Telemetry:Otlp:Enabled=true` で OTLP エクスポートを有効化（既定オフ）。送信先は `Telemetry:Otlp:Endpoint`（既定 `http://localhost:4317`）、プロトコルは `Telemetry:Otlp:Protocol`（`Grpc`=4317 / `HttpProtobuf`=4318）。標準の `OTEL_EXPORTER_OTLP_ENDPOINT` 環境変数があればそれを優先（Aspire 連携）。無効時は処理時間のローカルログのみ。トレース源は `PcAgent.Diagnostics`（`diagnostics.snapshot`）と `PcAgent.Agent`（エージェント/ツール）。
+`Telemetry:Otlp:Enabled=true` で OTLP エクスポートを有効化（既定オフ）。送信先は `Telemetry:Otlp:Endpoint`（既定 `http://localhost:4317`）、プロトコルは `Telemetry:Otlp:Protocol`（`Grpc`=4317 / `HttpProtobuf`=4318）。標準の `OTEL_EXPORTER_OTLP_ENDPOINT` 環境変数があればそれを優先（Aspire 連携）。無効時は処理時間のローカルログのみ。トレース源は `PcAgent.Diagnostics`（`diagnostics.snapshot`）と `PcAgent.Agent`（エージェント/ツール）。あわせて**メトリクス**（`pcagent.diagnoses.count` / `pcagent.findings.count`(重大度別) / `pcagent.collections.count` / `pcagent.snapshot.duration`）も送信され、ダッシュボードの **Metrics** タブに表示される。
 
 #### Aspire ダッシュボードで受信確認
 
