@@ -30,4 +30,7 @@ public sealed class LlmOptions
 
     // モデル(デプロイメント)名。
     public string? Model { get; set; }
+
+    // コンテキストウィンドウのトークン数(/context の使用率算出に使用)。
+    public int ContextWindow { get; set; } = 128000;
 }

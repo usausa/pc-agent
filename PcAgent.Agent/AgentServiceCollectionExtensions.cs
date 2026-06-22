@@ -15,6 +15,7 @@ public static class AgentServiceCollectionExtensions
         services.Configure<LlmOptions>(configuration.GetSection(LlmOptions.SectionName));
         services.Configure<TelemetryOptions>(configuration.GetSection(TelemetryOptions.SectionName));
         services.Configure<RagOptions>(configuration.GetSection(RagOptions.SectionName));
+        services.Configure<CompactionOptions>(configuration.GetSection(CompactionOptions.SectionName));
 
         services.AddSingleton<PcInfoTools>();
         services.AddSingleton<ShellTools>();

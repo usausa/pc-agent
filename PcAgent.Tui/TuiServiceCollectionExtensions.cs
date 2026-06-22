@@ -14,6 +14,8 @@ public static class TuiServiceCollectionExtensions
         services.AddSingleton<ISlashCommand, ClearCommand>();
         services.AddSingleton<ISlashCommand, ExitCommand>();
         services.AddSingleton<ISlashCommand, ModelCommand>();
+        services.AddSingleton<ISlashCommand, CompactCommand>();
+        services.AddSingleton<ISlashCommand, ContextCommand>();
         services.AddSingleton<ISlashCommand, InfoSlashCommand>();
         services.AddSingleton<ISlashCommand, StatusCommand>();
         services.AddSingleton<ISlashCommand, ConfigCommand>();

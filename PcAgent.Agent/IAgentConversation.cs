@@ -14,4 +14,27 @@ public interface IAgentConversation
 
     // 利用者メッセージを送り、応答イベントを非同期ストリームで受け取る。
     IAsyncEnumerable<AgentEvent> SendAsync(string userMessage, CancellationToken cancellationToken = default);
+
+    // 会話履歴をクリアする(/compact)。次回送信時に新しいセッションを作る。
+    void ResetConversation();
+
+    // 会話コンテキストの概況を返す(/context)。
+    ContextInfo GetContextInfo();
 }
+
+// /context で表示する、会話コンテキストの概況。
+public sealed record ContextInfo(
+    string ModelName,
+    int ContextWindow,
+    bool HasUsage,
+    long LastInputTokens,
+    long LastOutputTokens,
+    long TotalOutputTokens,
+    int TurnCount,
+    bool CompactionEnabled,
+    int CompactionThreshold,
+    int CompactionKeepTurns,
+    IReadOnlyList<string> Tools,
+    bool RagEnabled,
+    int RagDocCount,
+    int ProviderCount);

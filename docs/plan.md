@@ -11,6 +11,7 @@
 - **情報取得 / 診断**: Collectors（HW/SMART/System）、外部 JSON ルール/閾値エンジン、ダッシュボード表示。
 - **エージェント**: ストリーミング対話、関数ツール、RAG/コンテキスト注入、HITL 承認、2 層処理時間ログ、OpenTelemetry/OTLP（既定オフ）。
 - **LLM シェルツール**: 承認(HITL) + 許可リスト(`Actions:Shell:AllowedCommands`) + シェル演算子拒否で制限（実機検証済み）。
+- **会話メモリ / 圧縮**: セッション永続化（ターン間記憶）+ 履歴圧縮（`CompactionProvider`、`Compaction:MessagesThreshold` で閾値設定）+ `/compact`（手動クリア）。実機検証済み。
 - **TUI / REPL**: `/ @ !` ディスパッチ、補完、カスタムコマンド（Markdown）、終了サマリ、簡易マークダウン整形。
 - **配布**: 自己完結・単一ファイル（Trimming なし）発行。
 - **実機検証済み**: 情報取得・診断・REPL・カスタムコマンド・`/clean`（承認ゲート）・OTLP 初期化・単一 exe、および LLM 依存経路（対話 / ツール / RAG / HITL 承認 / 層 2 ログ）。
@@ -29,8 +30,7 @@
 | ★★ | 2. OTLP コレクタ受信確認 | 動作確認 | — | 小 |
 | ★★ | 3. メトリクス | 任意 | 🔜 `MeterProvider`（テレメトリ） | 中 |
 | ★★ | 4. 評価 | 任意 | 🔜 `LocalEvaluator` | 中 |
-| ★ | 5. 履歴圧縮 | 任意・実験的 API | 🔜 `CompactionProvider` | 中 |
-| ★ | 6. Aspire AppHost | 任意 | —（インフラ） | 小〜中 |
+| ★ | 5. Aspire AppHost | 任意 | —（インフラ） | 小〜中 |
 
 ---
 
@@ -64,17 +64,7 @@
 - **確認方法**:
   - 評価実行 → スコア/レポート出力。閾値で pass/fail を判定。
 
-### 🗜️ 5. 履歴圧縮（CompactionProvider）★（任意・実験的 API）
-
-- **🔜 使用予定の AF 機能**: **履歴の圧縮** `CompactionProvider`（**実験的 `MAAI001`**）。
-- **優先度の理由**: 短い診断対話では必要性が低い。実験的 API を伴うため優先度低。
-- **作業内容**:
-  1. `CompactionProvider`（または履歴 reducer）を agent に設定し、履歴増加時に古いターンを要約（決定的間引き / LLM 要約のいずれか）。
-  2. `MAAI001` の抑制が必要なら **事前相談**（AGENTS.md）。
-- **確認方法**:
-  - 長い多ターン対話 → 履歴が圧縮されコンテキスト超過せず継続（古いターンが要約される）。
-
-### 🧭 6. Aspire AppHost ★（任意）
+### 🧭 5. Aspire AppHost ★（任意）
 
 - **優先度の理由**: PcAgent は**対話 TUI** のため AppHost からの常駐起動は不自然。**スタンドアロンのダッシュボードで代替可能**なため価値は低い。
 - **背景**: OTLP の受信・可視化用。アプリ本体は **Aspire 非依存**（`ServiceDefaults` は作らない方針）。
