@@ -56,31 +56,32 @@ var agentOptions = new ChatClientAgentOptions
 };
 var agent = chatClient.AsAIAgent(agentOptions);
 
-// ローカル検査のみ: 応答が非空 / GetPcInfo ツールを呼ぶ。
-var evaluator = new LocalEvaluator(
-[
-    EvalChecks.NonEmpty(1),
-    EvalChecks.ToolCalledCheck("GetPcInfo"),
-]);
-
-string[] queries =
-[
-    "CPUの温度と使用率を教えて。",
-    "メモリの空き容量は?",
-    "システム情報(OS とマシン名)を教えて。",
-];
+// ケースごとに観点別の検査を割り当てる(質問ごとに評価器を分ける)。
+// 観点: 接地(ツールで実値取得=値を捏造しない) / 正しいツール選択 / 応答内容の妥当性(OS名)。
+var cases = new (string Title, string Query, LocalEvaluator Evaluator)[]
+{
+    ("OS情報: 接地 + 応答に 'Windows' (GetPcInfo + KeywordCheck)", "このPCのOS名を教えて。",
+        new LocalEvaluator([EvalChecks.NonEmpty(1), EvalChecks.ToolCalledCheck("GetPcInfo"), EvalChecks.KeywordCheck("Windows")])),
+    ("CPU情報: 接地 (GetPcInfo)", "CPUの温度と使用率を教えて。",
+        new LocalEvaluator([EvalChecks.NonEmpty(1), EvalChecks.ToolCalledCheck("GetPcInfo")])),
+    ("メモリ情報: 接地 (GetPcInfo)", "メモリの空き容量は?",
+        new LocalEvaluator([EvalChecks.NonEmpty(1), EvalChecks.ToolCalledCheck("GetPcInfo")])),
+    ("ツール選択: 一覧質問 → ListCategories", "このエージェントが取得できる情報カテゴリの一覧を、ツールを使って教えて。",
+        new LocalEvaluator([EvalChecks.NonEmpty(1), EvalChecks.ToolCalledCheck("ListCategories")])),
+};
 
 await Console.Out.WriteLineAsync("=== PcAgent 評価 (LocalEvaluator) ===").ConfigureAwait(false);
-await Console.Out.WriteLineAsync("検査: 応答が非空 / GetPcInfo ツールを呼ぶ").ConfigureAwait(false);
-foreach (var query in queries)
+
+var passed = 0;
+foreach (var (title, query, evaluator) in cases)
 {
-    await Console.Out.WriteLineAsync("  - " + query).ConfigureAwait(false);
+    var result = await agent.EvaluateAsync([query], evaluator).ConfigureAwait(false);
+    passed += result.AllPassed ? 1 : 0;
+    await Console.Out.WriteLineAsync((result.AllPassed ? "✅ " : "❌ ") + title).ConfigureAwait(false);
 }
 
-var results = await agent.EvaluateAsync(queries, evaluator).ConfigureAwait(false);
-
 await Console.Out.WriteLineAsync().ConfigureAwait(false);
-await Console.Out.WriteLineAsync(String.Create(CultureInfo.InvariantCulture, $"合格項目: {results.Passed} / {results.Total}")).ConfigureAwait(false);
-await Console.Out.WriteLineAsync("全合格  : " + (results.AllPassed ? "はい" : "いいえ")).ConfigureAwait(false);
+await Console.Out.WriteLineAsync(String.Create(CultureInfo.InvariantCulture, $"合格: {passed} / {cases.Length}")).ConfigureAwait(false);
+await Console.Out.WriteLineAsync("全合格: " + (passed == cases.Length ? "はい" : "いいえ")).ConfigureAwait(false);
 
-return results.AllPassed ? 0 : 1;
+return passed == cases.Length ? 0 : 1;

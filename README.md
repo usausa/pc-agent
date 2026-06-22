@@ -194,12 +194,12 @@ argument-hint: [メモ]
 
 ## 🧪 評価(品質チェック)
 
-`PcAgent.Evaluation` は代表的な質問でエージェントを実行し、**ローカル検査のみ**(追加 LLM 呼び出し不要)で応答を採点する CI/開発用ツール。`LocalEvaluator` + `EvalChecks`(応答が非空 / `GetPcInfo` ツールを呼ぶ 等)で判定し、全項目合格で終了コード `0`、不合格で `1` を返す。
+`PcAgent.Evaluation` は代表的な質問でエージェントを実行し、**ローカル検査のみ**(追加 LLM 呼び出し不要)で応答を採点する CI/開発用ツール。`LocalEvaluator` + `EvalChecks` で**観点別**に判定する — 接地(ツールで実値を取得し値を捏造しない `ToolCalledCheck`) / 正しいツール選択(一覧質問 → `ListCategories`) / 応答内容の妥当性(OS 名に `Windows` を含む `KeywordCheck`) / 応答が非空。全ケース合格で終了コード `0`、不合格で `1` を返す。
 
 ```pwsh
 # LLM 認証情報が必要(ユーザーシークレット pc-agent を Tui と共有。Llm:Endpoint/ApiKey/Model)
 dotnet run --project PcAgent.Evaluation
-# 出力例:「合格項目: 3 / 3」「全合格: はい」(終了コード 0)
+# 出力例: 観点ごとに ✅/❌ を表示し「合格: 4 / 4」「全合格: はい」(終了コード 0)
 ```
 
 評価ケース(質問・検査)は [`PcAgent.Evaluation/Program.cs`](PcAgent.Evaluation/Program.cs) で定義。
