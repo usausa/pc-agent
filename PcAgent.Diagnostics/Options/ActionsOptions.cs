@@ -24,4 +24,7 @@ public sealed class ShellActionOptions
 {
     // LLM が実行できるコマンド名(先頭語)の許可リスト。空なら全拒否。
     public IList<string> AllowedCommands { get; } = [];
+
+    // 1 回の実行に許す最大秒数。ping -t のような終了しないコマンドを打ち切る。
+    public int TimeoutSeconds { get; set; } = 30;
 }

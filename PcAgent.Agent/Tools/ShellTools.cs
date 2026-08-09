@@ -50,7 +50,7 @@ public sealed class ShellTools(IOptions<ActionsOptions> options)
                 $"コマンド '{name}' は許可リストにありません。許可: {String.Join(", ", allowed)}");
         }
 
-        return await ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+        return await ExecuteAsync(command, actions.Shell.TimeoutSeconds, cancellationToken).ConfigureAwait(false);
     }
 
     private static string FirstToken(string command)
@@ -60,7 +60,7 @@ public sealed class ShellTools(IOptions<ActionsOptions> options)
         return space < 0 ? trimmed : trimmed[..space];
     }
 
-    private static async Task<string> ExecuteAsync(string command, CancellationToken cancellationToken)
+    private static async Task<string> ExecuteAsync(string command, int timeoutSeconds, CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo("cmd.exe", "/c " + command)
         {
@@ -76,9 +76,39 @@ public sealed class ShellTools(IOptions<ActionsOptions> options)
             return "コマンドを起動できませんでした。";
         }
 
-        var output = await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
-        var error = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
-        await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        if (timeoutSeconds > 0)
+        {
+            timeout.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+        }
+
+        // 両方のパイプをリダイレクトしているため、両方を読み進める必要がある。
+        // stderr を読まないままにすると、そのバッファが埋まった時点で子プロセスが
+        // 書き込みでブロックし、stdout も EOF にならず相互に待ち合う。
+        var outputTask = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        var errorTask = process.StandardError.ReadToEndAsync(timeout.Token);
+
+        string output;
+        string error;
+        try
+        {
+            var streams = await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
+            output = streams[0];
+            error = streams[1];
+            await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            Kill(process);
+            return String.Create(
+                CultureInfo.InvariantCulture,
+                $"$ {command}\nコマンドが {timeoutSeconds} 秒以内に終了しなかったため中断しました。");
+        }
+        catch (OperationCanceledException)
+        {
+            Kill(process);
+            throw;
+        }
 
         var builder = new StringBuilder();
         builder.Append(CultureInfo.InvariantCulture, $"$ {command} (exit {process.ExitCode})");
@@ -94,5 +124,25 @@ public sealed class ShellTools(IOptions<ActionsOptions> options)
 
         var text = builder.ToString();
         return text.Length <= MaxOutputChars ? text : text[..MaxOutputChars] + "\n…(truncated)";
+    }
+
+    // cmd.exe /c 経由なので、子孫まで落とさないとコマンド本体が残る。
+    private static void Kill(Process process)
+    {
+        try
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // すでに終了している
+        }
+        catch (Win32Exception)
+        {
+            // 落とせない場合は諦める
+        }
     }
 }
