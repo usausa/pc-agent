@@ -39,7 +39,7 @@ internal sealed class ReplPromptCallbacks(IReadOnlyList<string> slashNames, IRea
 
     protected override Task<IReadOnlyList<CompletionItem>> GetCompletionItemsAsync(string text, int caret, TextSpan spanToBeReplaced, CancellationToken cancellationToken)
     {
-        var typed = caret >= 1 && caret <= text.Length ? text[1..caret] : String.Empty;
+        var typed = (caret >= 1) && (caret <= text.Length) ? text[1..caret] : string.Empty;
         var hasSpace = text.Contains(' ', StringComparison.Ordinal);
 
         if (text.StartsWith('/') && !hasSpace)
@@ -58,7 +58,7 @@ internal sealed class ReplPromptCallbacks(IReadOnlyList<string> slashNames, IRea
     protected override Task<bool> ShouldOpenCompletionWindowAsync(string text, int caret, KeyPress keyPress, CancellationToken cancellationToken)
     {
         var hasSpace = text.Contains(' ', StringComparison.Ordinal);
-        var open = text.Length > 0 && (text[0] == '/' || text[0] == '@') && !hasSpace;
+        var open = (text.Length > 0) && ((text[0] == '/') || (text[0] == '@')) && !hasSpace;
         return Task.FromResult(open);
     }
 

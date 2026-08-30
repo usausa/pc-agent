@@ -89,7 +89,7 @@ public sealed class InputDispatcher(
     private static (string Name, string Remainder) SplitHead(string text)
     {
         var space = text.IndexOf(' ', StringComparison.Ordinal);
-        return space < 0 ? (text, String.Empty) : (text[..space], text[(space + 1)..].Trim());
+        return space < 0 ? (text, string.Empty) : (text[..space], text[(space + 1)..].Trim());
     }
 
     private static void NotConfigured()

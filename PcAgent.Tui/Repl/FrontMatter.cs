@@ -13,7 +13,7 @@ internal static class FrontMatter
         if (!normalized.StartsWith("---\n", StringComparison.Ordinal))
         {
             // frontmatter 無し: 本文のみ(名前は呼び出し側でファイル名から補完)。
-            return new Document(String.Empty, String.Empty, null, normalized.Trim());
+            return new Document(string.Empty, string.Empty, null, normalized.Trim());
         }
 
         var end = normalized.IndexOf("\n---", 4, StringComparison.Ordinal);
@@ -24,10 +24,10 @@ internal static class FrontMatter
 
         var header = normalized[4..end];
         var bodyStart = normalized.IndexOf('\n', end + 1);
-        var body = bodyStart < 0 ? String.Empty : normalized[(bodyStart + 1)..].Trim();
+        var body = bodyStart < 0 ? string.Empty : normalized[(bodyStart + 1)..].Trim();
 
-        var name = String.Empty;
-        var description = String.Empty;
+        var name = string.Empty;
+        var description = string.Empty;
         string? argumentHint = null;
 
         foreach (var line in header.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))

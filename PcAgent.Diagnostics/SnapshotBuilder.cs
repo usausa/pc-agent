@@ -91,7 +91,7 @@ public sealed class SnapshotBuilder(IEnumerable<ICollector> collectors)
         {
             foreach (var value in group.Values)
             {
-                if (String.Equals(value.Unit, unit, StringComparison.Ordinal) && value.Value is { } number && (max is null || number > max))
+                if (String.Equals(value.Unit, unit, StringComparison.Ordinal) && (value.Value is { } number) && ((max is null) || (number > max)))
                 {
                     max = number;
                     source = group.Name;

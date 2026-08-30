@@ -101,7 +101,7 @@ public sealed class WifiCollector : ICollector
             values.Add(new("RSSI", rssi, "dBm", null));
         }
 
-        var bss = bssList.FirstOrDefault(b => b.InterfaceInfo.Id == interfaceId && b.Bssid.Equals(connection.Bssid));
+        var bss = bssList.FirstOrDefault(b => (b.InterfaceInfo.Id == interfaceId) && b.Bssid.Equals(connection.Bssid));
         if (bss is not null)
         {
             values.Add(new("Band", bss.Band, "GHz", null));

@@ -55,7 +55,7 @@ internal sealed class PcContextProvider : AIContextProvider
         }
 
         return worst is null
-            ? String.Empty
+            ? string.Empty
             : String.Create(CultureInfo.InvariantCulture, $" / 最も使用率の高いドライブ: {worst} {maxUsed:F0}%");
     }
 }

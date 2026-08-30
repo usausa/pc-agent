@@ -91,9 +91,9 @@ public sealed class WatchCommand(IEnumerable<ICollector> collectors) : ISlashCom
                     continue;
                 }
 
-                var unit = value.Unit is { Length: > 0 } u ? " " + u : String.Empty;
+                var unit = value.Unit is { Length: > 0 } u ? " " + u : string.Empty;
                 var display = number.ToString("0.##", CultureInfo.InvariantCulture) + unit;
-                var bar = value.Unit is "%" or "°C" ? Bar(number) : String.Empty;
+                var bar = value.Unit is "%" or "°C" ? Bar(number) : string.Empty;
                 grid.AddRow($"[white]{Markup.Escape(value.Name)}[/]", $"[aqua]{Markup.Escape(display)}[/]", bar);
                 rows++;
             }
@@ -101,7 +101,7 @@ public sealed class WatchCommand(IEnumerable<ICollector> collectors) : ISlashCom
 
         if (rows == 0)
         {
-            grid.AddRow("[silver](no numeric data)[/]", String.Empty, String.Empty);
+            grid.AddRow("[silver](no numeric data)[/]", string.Empty, string.Empty);
         }
 
         return grid;

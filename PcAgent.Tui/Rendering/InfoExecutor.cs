@@ -35,7 +35,7 @@ internal static class InfoExecutor
 
         if (targets is null)
         {
-            var unknown = $"[yellow]Unknown category '{Markup.Escape(category ?? String.Empty)}'. Available: {Markup.Escape(names)}, all[/]";
+            var unknown = $"[yellow]Unknown category '{Markup.Escape(category ?? string.Empty)}'. Available: {Markup.Escape(names)}, all[/]";
             AnsiConsole.MarkupLine(unknown);
             return;
         }

@@ -108,7 +108,7 @@ public sealed class EventLogCollector : ICollector
 
         foreach (var aggregate in distinct.Values.OrderByDescending(static a => a.Count).ThenByDescending(static a => a.Sort).Take(TopDistinct))
         {
-            var times = aggregate.Count > 1 ? $" ×{aggregate.Count.ToString(CultureInfo.InvariantCulture)}" : String.Empty;
+            var times = aggregate.Count > 1 ? $" ×{aggregate.Count.ToString(CultureInfo.InvariantCulture)}" : string.Empty;
             var id = aggregate.Id.ToString(CultureInfo.InvariantCulture);
             values.Add(new($"{aggregate.Time} {aggregate.Provider}", null, null, $"[{LevelName(aggregate.Level)} #{id}]{times} {aggregate.Message}"));
         }

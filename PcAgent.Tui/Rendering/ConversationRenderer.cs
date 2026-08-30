@@ -33,7 +33,7 @@ internal static partial class ConversationRenderer
                     }
 
                     var args = String.IsNullOrEmpty(started.Arguments)
-                        ? String.Empty
+                        ? string.Empty
                         : $"  [grey50]{Markup.Escape(started.Arguments)}[/]";
                     AnsiConsole.MarkupLine($"[blue]●[/] [{CommandColor}]{Markup.Escape(started.Name)}[/]{args}");
                     break;
@@ -104,7 +104,7 @@ internal static partial class ConversationRenderer
     {
         if (line.Length == 0)
         {
-            return String.Empty;
+            return string.Empty;
         }
 
         var heading = HeadingPattern().Match(line);

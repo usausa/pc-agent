@@ -23,7 +23,7 @@ public sealed class HelpCommand : ISlashCommand
 
         foreach (var command in context.Commands)
         {
-            var hint = command.ArgumentHint is { Length: > 0 } h ? " " + h : String.Empty;
+            var hint = command.ArgumentHint is { Length: > 0 } h ? " " + h : string.Empty;
             var line = $"  [green]/{Markup.Escape(command.Name)}[/][silver]{Markup.Escape(hint)}[/]  [silver]-[/]  {Markup.Escape(command.Description)}";
             AnsiConsole.MarkupLine(line);
         }

@@ -22,6 +22,7 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 // 実 LLM(Microsoft Agent Framework)を用いた対話。ツール + RAG + コンテキスト注入 + HITL 承認 + 計測を構成する。
 public sealed partial class PcAgentConversation : IAgentConversation
 {
+#pragma warning disable SA1214
     private readonly AIAgent? agent;
 
     private readonly IToolApprovalHandler approvalHandler;
@@ -45,6 +46,7 @@ public sealed partial class PcAgentConversation : IAgentConversation
     private long totalOutputTokens;
     private int turnCount;
     private bool hasUsage;
+#pragma warning restore SA1214
 
     public PcAgentConversation(
         IOptions<LlmOptions> options,
@@ -124,7 +126,7 @@ public sealed partial class PcAgentConversation : IAgentConversation
             new ApprovalRequiredAIFunction(AIFunctionFactory.Create(MaintenanceTools.CleanBinObj)),
         };
 
-        if (actions.AllowShell && actions.Shell.AllowedCommands.Count > 0)
+        if (actions.AllowShell && (actions.Shell.AllowedCommands.Count > 0))
         {
             toolList.Add(new ApprovalRequiredAIFunction(AIFunctionFactory.Create(shellTools.RunShellCommand)));
             instructions +=
@@ -237,7 +239,7 @@ public sealed partial class PcAgentConversation : IAgentConversation
                             break;
                         case FunctionResultContent result:
                             var name = toolNames.TryGetValue(result.CallId, out var resolved) ? resolved : result.CallId;
-                            yield return new ToolCallCompleted(name, result.Result?.ToString() ?? String.Empty);
+                            yield return new ToolCallCompleted(name, result.Result?.ToString() ?? string.Empty);
                             break;
                         case ToolApprovalRequestContent approval:
                             approvals.Add(approval);
@@ -277,7 +279,7 @@ public sealed partial class PcAgentConversation : IAgentConversation
             {
                 var call = approval.ToolCall as FunctionCallContent;
                 var toolName = call?.Name ?? "tool";
-                var arguments = call is not null ? FormatArguments(call) : String.Empty;
+                var arguments = call is not null ? FormatArguments(call) : string.Empty;
                 var approved = await approvalHandler.ApproveAsync(toolName, arguments, cancellationToken).ConfigureAwait(false);
                 responses.Add(approval.CreateResponse(approved, approved ? "approved by user" : "rejected by user"));
             }

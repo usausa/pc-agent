@@ -43,7 +43,7 @@ public sealed class SmartCollector : ICollector
         var name = String.IsNullOrEmpty(drive) ? disk.Model : $"{disk.Model} ({drive})";
         var values = new List<MetricValue>();
 
-        if (disk.SmartType == SmartType.Nvme && disk.Smart is ISmartNvme nvme)
+        if ((disk.SmartType == SmartType.Nvme) && (disk.Smart is ISmartNvme nvme))
         {
             if (nvme.Update())
             {
@@ -60,7 +60,7 @@ public sealed class SmartCollector : ICollector
                 values.Add(new("Data Unit Written", nvme.DataUnitWritten, null, null));
             }
         }
-        else if (disk.SmartType == SmartType.Generic && disk.Smart is ISmartGeneric generic)
+        else if ((disk.SmartType == SmartType.Generic) && (disk.Smart is ISmartGeneric generic))
         {
             if (generic.Update())
             {

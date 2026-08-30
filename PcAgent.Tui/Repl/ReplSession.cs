@@ -97,7 +97,7 @@ public sealed class ReplSession(
 
     private static IInputReader CreateReader(IReadOnlyList<string> slashNames, IReadOnlyList<string> sourceNames, UiOptions ui)
     {
-        if (Console.IsInputRedirected || Console.IsOutputRedirected || ui.CompletionEngine == CompletionEngine.Builtin)
+        if (Console.IsInputRedirected || Console.IsOutputRedirected || (ui.CompletionEngine == CompletionEngine.Builtin))
         {
             return new BuiltinInputReader();
         }

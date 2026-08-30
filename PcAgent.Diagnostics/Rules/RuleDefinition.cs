@@ -5,9 +5,9 @@ using PcAgent.Diagnostics.Models;
 // 外部 JSON(rules.json)の 1 ルール。Value=リテラル閾値 / ValueRef=閾値ファイルのキー参照。
 public sealed class RuleDefinition
 {
-    public string Id { get; set; } = String.Empty;
+    public string Id { get; set; } = string.Empty;
 
-    public string Metric { get; set; } = String.Empty;
+    public string Metric { get; set; } = string.Empty;
 
     public string Op { get; set; } = ">";
 
@@ -17,7 +17,7 @@ public sealed class RuleDefinition
 
     public Severity Severity { get; set; }
 
-    public string Message { get; set; } = String.Empty;
+    public string Message { get; set; } = string.Empty;
 
     public string? Action { get; set; }
 }

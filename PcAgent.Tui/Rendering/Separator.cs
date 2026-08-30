@@ -10,7 +10,7 @@ internal static class Separator
 
     public static void Line(int width = DefaultWidth, int indent = 0, string color = "grey50")
     {
-        var pad = indent > 0 ? new string(' ', indent) : String.Empty;
+        var pad = indent > 0 ? new string(' ', indent) : string.Empty;
         var rule = new string('─', Math.Max(1, width));
         AnsiConsole.MarkupLine($"{pad}[{color}]{rule}[/]");
     }

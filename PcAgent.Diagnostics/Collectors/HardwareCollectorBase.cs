@@ -42,6 +42,6 @@ public abstract class HardwareCollectorBase(HardwareMonitorSource source, Sensor
         SensorKind.Throughput => ("MB/s", 1024.0 * 1024.0),
         SensorKind.Energy => ("mWh", 1.0),
         SensorKind.Duration => ("s", 1.0),
-        _ => (String.Empty, 1.0),
+        _ => (string.Empty, 1.0),
     };
 }

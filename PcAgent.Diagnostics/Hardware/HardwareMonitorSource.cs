@@ -119,7 +119,7 @@ public sealed class HardwareMonitorSource : IDisposable
 
     private static double? ToValue(ISensor sensor)
     {
-        if (sensor.Value is not { } value || Single.IsNaN(value))
+        if ((sensor.Value is not { } value) || Single.IsNaN(value))
         {
             return null;
         }

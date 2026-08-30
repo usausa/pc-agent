@@ -61,7 +61,7 @@ internal static class InfoRenderer
         }
 
         var text = number.ToString("0.##", CultureInfo.InvariantCulture);
-        var unit = value.Unit is { Length: > 0 } u ? " " + u : String.Empty;
+        var unit = value.Unit is { Length: > 0 } u ? " " + u : string.Empty;
         var valueMarkup = $"[aqua]{text}{Markup.Escape(unit)}[/]";
 
         if (value.Unit == "%")

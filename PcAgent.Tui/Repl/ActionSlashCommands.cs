@@ -54,7 +54,7 @@ public sealed class CleanCommand(IOptions<ActionsOptions> options) : ISlashComma
         }
 
         var parts = arguments.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var kind = parts.Length > 0 ? parts[0] : String.Empty;
+        var kind = parts.Length > 0 ? parts[0] : string.Empty;
 
         CleanupPlan plan;
         if (String.Equals(kind, "temp", StringComparison.OrdinalIgnoreCase))

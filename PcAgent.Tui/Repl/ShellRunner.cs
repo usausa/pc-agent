@@ -43,7 +43,7 @@ public sealed class ShellRunner(IOptions<ActionsOptions> options)
     {
         if (String.IsNullOrWhiteSpace(command))
         {
-            return String.Empty;
+            return string.Empty;
         }
 
         if (!options.Value.AllowShell)
@@ -68,7 +68,7 @@ public sealed class ShellRunner(IOptions<ActionsOptions> options)
         using var process = Process.Start(startInfo);
         if (process is null)
         {
-            return (String.Empty, String.Empty);
+            return (string.Empty, string.Empty);
         }
 
         var standardOutput = await process.StandardOutput.ReadToEndAsync(cancellationToken);
