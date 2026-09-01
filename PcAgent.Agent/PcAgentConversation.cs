@@ -22,7 +22,6 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 // 実 LLM(Microsoft Agent Framework)を用いた対話。ツール + RAG + コンテキスト注入 + HITL 承認 + 計測を構成する。
 public sealed partial class PcAgentConversation : IAgentConversation
 {
-#pragma warning disable SA1214
     private readonly AIAgent? agent;
 
     private readonly IToolApprovalHandler approvalHandler;
@@ -46,7 +45,6 @@ public sealed partial class PcAgentConversation : IAgentConversation
     private long totalOutputTokens;
     private int turnCount;
     private bool hasUsage;
-#pragma warning restore SA1214
 
     public PcAgentConversation(
         IOptions<LlmOptions> options,
