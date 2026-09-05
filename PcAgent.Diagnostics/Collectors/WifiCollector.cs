@@ -22,8 +22,8 @@ public sealed class WifiCollector : ICollector
         List<BssNetworkPack> bssList;
         try
         {
-            interfaces = NativeWifi.EnumerateInterfaceConnections().ToList();
-            bssList = NativeWifi.EnumerateBssNetworks().ToList();
+            interfaces = [.. NativeWifi.EnumerateInterfaceConnections()];
+            bssList = [.. NativeWifi.EnumerateBssNetworks()];
         }
         catch (Win32Exception ex)
         {
@@ -57,7 +57,7 @@ public sealed class WifiCollector : ICollector
         {
             new("State", null, null, iface.State.ToString()),
             new("Radio", null, null, iface.IsRadioOn ? "On" : "Off"),
-            new("Visible Networks", bssList.Count(b => b.InterfaceInfo.Id == iface.Id), null, null),
+            new("Visible Networks", bssList.Count(b => b.InterfaceInfo.Id == iface.Id), null, null)
         };
 
         if (iface.IsConnected)
@@ -83,7 +83,7 @@ public sealed class WifiCollector : ICollector
         return new MetricGroup("Wi-Fi: " + iface.Description, values);
     }
 
-    private static void AddConnectionValues(Guid interfaceId, List<BssNetworkPack> bssList, List<MetricValue> values)
+    private static void AddConnectionValues(Guid interfaceId, IEnumerable<BssNetworkPack> bssList, List<MetricValue> values)
     {
         var (result, connection) = NativeWifi.GetCurrentConnection(interfaceId);
         if (result != ActionResult.Success)
@@ -123,6 +123,6 @@ public sealed class WifiCollector : ICollector
         PhyType.Erp => "802.11g",
         PhyType.Ofdm => "802.11a",
         PhyType.HrDsss => "802.11b",
-        _ => phy.ToString(),
+        _ => phy.ToString()
     };
 }
