@@ -6,7 +6,6 @@
     <File Path="PcAgent.sln.DotSettings" />
     <File Path="AGENTS.md" />
     <File Path="Analyzers.ruleset" />
-    <File Path="CLAUDE.md" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="LICENSE" />
