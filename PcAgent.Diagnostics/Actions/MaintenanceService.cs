@@ -114,9 +114,7 @@ public static class MaintenanceService
                 List<string> subdirectories;
                 try
                 {
-#pragma warning disable IDE0028
                     subdirectories = Directory.EnumerateDirectories(current).ToList();
-#pragma warning restore IDE0028
                 }
                 catch (IOException)
                 {
