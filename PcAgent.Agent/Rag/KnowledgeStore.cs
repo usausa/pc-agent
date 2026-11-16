@@ -50,7 +50,7 @@ internal sealed class KnowledgeStore
     [
         .. query
             .Split([' ', '\t', '\n', '、', '。', ',', '.'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(static t => t.Length >= 2),
+            .Where(static t => t.Length >= 2)
     ];
 }
 
