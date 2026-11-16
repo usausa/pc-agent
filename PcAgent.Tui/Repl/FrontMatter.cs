@@ -23,7 +23,7 @@ internal static class FrontMatter
         }
 
         var header = normalized[4..end];
-        var bodyStart = normalized.IndexOf('\n', end + 1);
+        var bodyStart = normalized.IndexOf('\n', end + 1, StringComparison.Ordinal);
         var body = bodyStart < 0 ? string.Empty : normalized[(bodyStart + 1)..].Trim();
 
         var name = string.Empty;

@@ -42,12 +42,12 @@ internal sealed class ReplPromptCallbacks(IReadOnlyList<string> slashNames, IRea
         var typed = (caret >= 1) && (caret <= text.Length) ? text[1..caret] : string.Empty;
         var hasSpace = text.Contains(' ', StringComparison.Ordinal);
 
-        if (text.StartsWith('/') && !hasSpace)
+        if (text.StartsWith('/', StringComparison.Ordinal) && !hasSpace)
         {
             return Task.FromResult(Build(slashNames, '/', typed));
         }
 
-        if (text.StartsWith('@') && !hasSpace)
+        if (text.StartsWith('@', StringComparison.Ordinal) && !hasSpace)
         {
             return Task.FromResult(Build(sourceNames, '@', typed));
         }

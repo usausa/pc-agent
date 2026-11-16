@@ -75,7 +75,7 @@ internal static partial class ConversationRenderer
         var text = buffer.ToString();
         var start = 0;
         int newline;
-        while ((newline = text.IndexOf('\n', start)) >= 0)
+        while ((newline = text.IndexOf('\n', start, StringComparison.Ordinal)) >= 0)
         {
             var line = text[start..newline].TrimEnd('\r');
             AnsiConsole.MarkupLine(FormatLine(line));

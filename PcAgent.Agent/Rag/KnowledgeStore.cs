@@ -47,9 +47,11 @@ internal sealed class KnowledgeStore
     }
 
     private static IReadOnlyList<string> Tokenize(string query) =>
-        [.. query
+    [
+        .. query
             .Split([' ', '\t', '\n', '、', '。', ',', '.'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(static t => t.Length >= 2)];
+            .Where(static t => t.Length >= 2),
+    ];
 }
 
 // ナレッジ 1 文書。Source は出典名(ファイル名)。

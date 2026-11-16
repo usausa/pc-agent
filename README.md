@@ -4,7 +4,7 @@ Windows PC の情報取得・診断・修復を行うエージェント CLI。�
 
 <img src="docs/pc-agent.png" title="Image" />
 
-- **基盤**: .NET 10 / C# / [Smart.CommandLine.Hosting](https://www.nuget.org/packages/Usa.Smart.CommandLine.Hosting)
+- **基盤**: .NET 11 / C# / [Smart.CommandLine.Hosting](https://www.nuget.org/packages/Usa.Smart.CommandLine.Hosting)
 - **エージェント**: Microsoft Agent Framework (`Microsoft.Agents.AI`)
 - **TUI**: [Spectre.Console](https://spectreconsole.net/) + [PrettyPrompt](https://github.com/waf/PrettyPrompt)（日本語優先・絵文字/進捗グラフ・桁ずれしないハイフン区切り）
 
@@ -44,8 +44,8 @@ Microsoft Agent Framework（`Microsoft.Agents.AI` 1.10.0）の機能カタログ
 
 ## 📋 前提
 
-- **OS**: Windows（TFM は `net10.0-windows`）。
-- **.NET SDK**: .NET 10。
+- **OS**: Windows（TFM は `net11.0-windows`）。
+- **.NET SDK**: .NET 11。
 - **管理者権限(推奨)**: 一部のハードウェアセンサー・SMART 情報の取得には管理者権限が必要。権限が無い場合は取得可能な範囲に縮退する（`/doctor` で可用性を確認）。
 - **LLM 接続(任意)**: 対話・RAG・承認付きアクションには LLM 接続が必要。未設定でも情報取得・診断は動作する。
 
@@ -215,7 +215,7 @@ dotnet run --project PcAgent.Evaluation
 dotnet publish PcAgent.Tui -p:PublishProfile=win-x64
 ```
 
-`PcAgent.Tui/bin/Release/net10.0-windows*/win-x64/publish/` に `PcAgent.Tui.exe` と設定ファイル(`appsettings.json` / `rules/` / `knowledge/`)が出力される。
+`PcAgent.Tui/bin/Release/net11.0-windows*/win-x64/publish/` に `PcAgent.Tui.exe` と設定ファイル(`appsettings.json` / `rules/` / `knowledge/`)が出力される。
 
 ## 🗂️ プロジェクト構成
 
