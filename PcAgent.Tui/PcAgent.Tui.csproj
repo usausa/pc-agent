@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="11.0.0" />
     <PackageReference Include="PrettyPrompt" Version="6.0.5" />
     <PackageReference Include="Spectre.Console" Version="0.57.2" />
-    <PackageReference Include="Usa.Smart.CommandLine.Hosting" Version="3.0.0" />
+    <PackageReference Include="Usa.Smart.CommandLine.Hosting" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
